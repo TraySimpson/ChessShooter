@@ -24,15 +24,19 @@ public class MapController : MonoBehaviour
 
     public bool CanPlace(int x, int y)
     {   
+        return IsValidCoords(x,y) && _worldMap[x, y, activeLevel] is null;
+    }
+
+    public bool IsValidCoords(int x, int y) {
         return x >= 0 &&
             x < unitWidth &&
             y >= 0 &&
-            y < unitHeight &&
-            _worldMap[x, y, activeLevel] is null;
+            y < unitHeight;
     }
 
     public WorldObject GetObjectAtCoords(Vector2Int coords) 
     {
+        if (!IsValidCoords(coords.x, coords.y)) return null;
         return _worldMap[coords.x, coords.y, activeLevel];
     }
 
@@ -62,9 +66,9 @@ public class MapController : MonoBehaviour
     private void ScalePlane() {
         if (_plane is null)
             _plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        _plane.transform.localScale = new Vector3(unitWidth / 10, 1, unitHeight / 10);
+        _plane.transform.localScale = new Vector3(unitWidth / 5, 1, unitHeight / 5);
         _plane.transform.position = new Vector3((unitWidth / 2 - .5f), 0, (unitHeight / 2 - .5f));
-        _plane.GetComponent<Renderer>().material.mainTextureScale = new Vector2(unitWidth / 2, unitHeight / 2);
+        _plane.GetComponent<Renderer>().material.mainTextureScale = new Vector2(unitWidth, unitHeight);
     }
 
     private void SetupGrids() {

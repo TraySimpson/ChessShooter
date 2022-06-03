@@ -19,7 +19,7 @@ public class UnitFOV : MonoBehaviour
     private Vector3 positionOffset;
 
     void Start() {
-        mask =~ LayerMask.GetMask("UnitGroup1");
+        mask =~ LayerMask.GetMask("UnitGroup1", "UnitGroup2");
         points = new List<Vector3>();
         SetupMesh();
         DrawFOV();

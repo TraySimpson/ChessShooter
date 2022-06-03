@@ -132,6 +132,5 @@ MonoBehaviour:
   viewDegrees: 60
   degreeResolution: 2
   points: []
-  drawMisses: 0
   fovMaterial: {fileID: 2100000, guid: 1d872f1ac021b3b488955ae7e892e022, type: 2}
   fovMesh: {fileID: 0}

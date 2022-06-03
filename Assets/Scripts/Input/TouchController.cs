@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class TouchController : MonoBehaviour
 {
@@ -9,23 +10,23 @@ public class TouchController : MonoBehaviour
     private MapController _map;
     private GameController _gameController;
 
-    //Pan
+    // Pan
     [SerializeField] private Vector3? touchStart;
 
-    //Rotate
-    [SerializeField] private Vector3 touchStartVector;
+    // Rotate
+    [SerializeField] private float rotationSpeed = 10f;
+    private bool hitRotationHandle;
     private Quaternion startRotation;
+    private int _fingerId;
 
-    //Unit Control
+    // Unit Control
     private Stack<GameObject> _movePath;
     private GameObject selectedUnit;
     private GameObject currentSelectedUnit;
     private int groundMask;
     private int uiMask;
-    private bool hitRotationHandle;
 
     [SerializeField] private GameObject pathPrefab;
-    [SerializeField] private GameObject rotateHandle;
 
     void Start() {
         _map = GetComponent<MapController>();
@@ -44,6 +45,7 @@ public class TouchController : MonoBehaviour
 
     private void HandleSingleTouch() {
         Touch touch = Input.GetTouch(0);
+        _fingerId = touch.fingerId;
         Vector3? touchPosition = GetTouchWorldPos(touch.position, touch.phase == TouchPhase.Began);
 
         //Touch outside the map
@@ -70,15 +72,13 @@ public class TouchController : MonoBehaviour
     private void OnTouchBegin(Vector3 touchPosition) {
         Vector2Int coordinates = touchPosition.Get2DCoords();
         WorldObject worldObject = _map.GetObjectAtCoords(coordinates);
-        if (!(worldObject is null) && worldObject.type == WorldObjectType.Unit) {
+        if (!(worldObject is null) && worldObject.type == WorldObjectType.Unit)
             currentSelectedUnit = worldObject.gameObject;
+        if (!(selectedUnit is null) && EventSystem.current.IsPointerOverGameObject(_fingerId)) {
+            hitRotationHandle = true;
+            startRotation = selectedUnit.transform.rotation;
         }
         touchStart = touchPosition;
-        if (hitRotationHandle) {
-            touchStartVector = touchStart.Value - selectedUnit.transform.position;
-            startRotation = selectedUnit.transform.rotation;
-            print($"Initial Vector set to {touchStartVector} : {touchStart} - {selectedUnit.transform.position}");
-        }
     }
 
     private void OnTouchUpdate(Vector3 touchPosition) {
@@ -90,11 +90,9 @@ public class TouchController : MonoBehaviour
                 // TODO Handle undoing a path, break out as own class
             }
         } else if (!(touchStart is null)) {
-            if (hitRotationHandle) {
+            if (hitRotationHandle && !(selectedUnit is null)) {
                 // Rotate
-                float angle = Vector3.Angle(touchStartVector, selectedUnit.transform.position - touchPosition) + selectedUnit.transform.rotation.y;
-                selectedUnit.transform.rotation = Quaternion.AngleAxis(angle, Vector3.up);
-                touchStartVector = touchPosition - selectedUnit.transform.position;
+                selectedUnit.transform.rotation = startRotation * Quaternion.Euler(0, (touchPosition - touchStart.Value).x * rotationSpeed, 0);
             } else {
                 // Pan
                 Vector3 distance = touchStart.Value - touchPosition;
@@ -152,9 +150,7 @@ public class TouchController : MonoBehaviour
         selectedUnit = unit;
         if (!unitIsNull) {
             selectedUnit.GetComponent<Outline>().enabled = true;
-            rotateHandle.transform.position = selectedUnit.transform.position + selectedUnit.transform.forward;
             _cameraController.MoveToCoords(selectedUnit.transform.position.Get2DCoords());
         }
-        rotateHandle.SetActive(!unitIsNull);
     }
 }
