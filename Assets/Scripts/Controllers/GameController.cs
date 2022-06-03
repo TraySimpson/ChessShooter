@@ -6,8 +6,8 @@ using UnityEngine;
 public class GameController : MonoBehaviour
 {
     [SerializeField] private int _unitsPerTeam = 5;
-    [SerializeField] private GameObject _unitPrefab;
-    [SerializeField] private Material _enemyMat;
+    [SerializeField] private GameObject _unit1Prefab;
+    [SerializeField] private GameObject _unit2Prefab;
     public GameState state;
 
     private MapController map;
@@ -41,11 +41,9 @@ public class GameController : MonoBehaviour
 
     private void SpawnUnit(int x, int y, bool isEnemy)
     {
-        GameObject unit = Instantiate(_unitPrefab, new Vector3(x, .8f, y), Quaternion.identity);
+        GameObject unit = Instantiate((isEnemy ? _unit2Prefab : _unit1Prefab), new Vector3(x, .8f, y), (isEnemy ? Quaternion.Euler(0, 180, 0) : Quaternion.identity));
         WorldObject unitObject = new WorldObject(unit, WorldObjectType.Unit);
         map.PlaceObject(x, y, unitObject);
-        if (isEnemy)
-            unit.GetComponent<Renderer>().material = _enemyMat;
     }
 }
 

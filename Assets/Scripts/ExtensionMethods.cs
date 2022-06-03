@@ -38,24 +38,4 @@ public static class ExtensionMethods
             Mathf.FloorToInt(vector.y)
         );
     }
-
-
-    // Camera Extensions
-    public static void MoveToCoords(this Camera camera, Vector2Int coordinates)
-    {
-        camera.transform.position = new Vector3(
-            coordinates.x,
-            camera.transform.position.y,
-            coordinates.y - CAMERA_Z_OFFSET
-        );
-    }
-
-    public static void MoveToCoords(this Camera camera, Vector2Int coordinates, float yAdjustment)
-    {
-        camera.transform.position = new Vector3(
-            coordinates.x,
-            camera.transform.position.y + yAdjustment,
-            coordinates.y - CAMERA_Z_OFFSET
-        );
-    }
 }

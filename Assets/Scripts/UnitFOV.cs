@@ -10,7 +10,6 @@ public class UnitFOV : MonoBehaviour
 
     private LayerMask mask;
     [SerializeField] private List<Vector3> points;
-    [SerializeField] private bool drawMisses = false;
     [SerializeField] private Material fovMaterial;
     [SerializeField] private Mesh fovMesh;
     private GameObject fovObject;
@@ -46,7 +45,7 @@ public class UnitFOV : MonoBehaviour
     }
 
     private void CalculateFOV() {
-        fovObject.transform.position = transform.position;
+        fovObject.transform.position = new Vector3(transform.position.x, 0, transform.position.z);
         fovObject.transform.rotation = transform.rotation;
         
         halfDegrees = viewDegrees / 2;
@@ -76,9 +75,10 @@ public class UnitFOV : MonoBehaviour
 
     private void DrawFOVMesh() {
         int vertexCount = points.Count + 1;
-        Vector3[] vertices = new Vector3[vertexCount];
-        int[] triangles = new int[(vertexCount - 2) * 3];
+        Vector3[] vertices = new Vector3[vertexCount + 4];
+        int[] triangles = new int[(vertexCount - 2) * 3 + 6];
 
+        //Draw FOV
         vertices[0] = Vector3.zero;
         for (int i = 0; i < vertexCount - 1; i++)
         {
@@ -91,6 +91,21 @@ public class UnitFOV : MonoBehaviour
                 triangles[i * 3 + 2] = i + 2;
             }
         }
+
+        //Draw surrounding Box
+        Vector2Int coordinates = transform.position.Get2DCoords();
+        float yOffset = transform.position.y;
+        vertices[vertices.Length - 4] = transform.InverseTransformPoint(new Vector3(coordinates.x - 1.5f, yOffset, coordinates.y + 1.5f));
+        vertices[vertices.Length - 3] = transform.InverseTransformPoint(new Vector3(coordinates.x + 1.5f, yOffset, coordinates.y + 1.5f));
+        vertices[vertices.Length - 2] = transform.InverseTransformPoint(new Vector3(coordinates.x - 1.5f, yOffset, coordinates.y - 1.5f));
+        vertices[vertices.Length - 1] = transform.InverseTransformPoint(new Vector3(coordinates.x + 1.5f, yOffset, coordinates.y - 1.5f));
+
+        triangles[triangles.Length - 6] = vertices.Length - 4;
+        triangles[triangles.Length - 5] = vertices.Length - 3;
+        triangles[triangles.Length - 4] = vertices.Length - 2;
+        triangles[triangles.Length - 3] = vertices.Length - 2;
+        triangles[triangles.Length - 2] = vertices.Length - 3;
+        triangles[triangles.Length - 1] = vertices.Length - 1;
 
         fovMesh.Clear();
 

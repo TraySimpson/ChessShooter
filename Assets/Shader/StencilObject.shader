@@ -13,7 +13,7 @@ Shader "Custom/StencilObject"
         LOD 200
 
         Stencil {
-            Ref 1
+            Ref 7
             Comp equal
         }
 

@@ -15,7 +15,7 @@ Shader "Custom/NewSurfaceShader"
         LOD 200
 
         Stencil {
-            Ref 1
+            Ref 7
             Pass replace
         }
 

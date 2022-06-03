@@ -7,7 +7,7 @@ Shader "Unlit/Transparent Colored" {
         Tags {"Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent"}
         
         Stencil {
-            Ref 1
+            Ref 7
             Comp NotEqual
         }
 
