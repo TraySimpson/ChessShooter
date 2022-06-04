@@ -55,12 +55,7 @@ public class MapController : MonoBehaviour
         Vector2Int currentCoords = gameObject.Get2DCoordinates();
         WorldObject worldObject = _worldMap[currentCoords.x, currentCoords.y, activeLevel];
         _worldMap[currentCoords.x, currentCoords.y, activeLevel] = null;
-        _worldMap[newCoordinates.x, newCoordinates.y, activeLevel] = worldObject;
-
-        // Move 3D Object
-        Vector3 newPosition = newCoordinates.ToVector3();
-        newPosition.y = gameObject.transform.position.y;
-        gameObject.transform.position = newPosition;        
+        _worldMap[newCoordinates.x, newCoordinates.y, activeLevel] = worldObject;   
     }
 
     private void ScalePlane() {

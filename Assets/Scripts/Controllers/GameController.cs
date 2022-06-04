@@ -25,7 +25,7 @@ public class GameController : MonoBehaviour
     {
         for (int i = 0; i < _unitsPerTeam; i++)
         {
-            if (map.IsValidCoords(x, y))
+            if (map.CanPlace(x, y))
             {
                 SpawnUnit(x, y, isEnemy);
             }

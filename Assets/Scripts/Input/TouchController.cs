@@ -19,6 +19,9 @@ public class TouchController : MonoBehaviour
     private Quaternion startRotation;
     private int _fingerId;
 
+    // Move 
+    [SerializeField] private float timeToMove = .2f;
+
     // Unit Control
     private Stack<GameObject> _movePath;
     private GameObject selectedUnit;
@@ -84,7 +87,7 @@ public class TouchController : MonoBehaviour
     private void OnTouchUpdate(Vector3 touchPosition) {
         if (!(currentSelectedUnit is null)) {
             Vector2Int coordinates = touchPosition.Get2DCoords();
-            if (coordinates != currentSelectedUnit.Get2DCoordinates() && (_movePath.Count == 0 || coordinates != _movePath.Peek().Get2DCoordinates())) {
+            if (CanAddToPath(coordinates)) {
                 GameObject pathObject = Instantiate(pathPrefab, coordinates.ToVector3(), Quaternion.identity);
                 _movePath.Push(pathObject);
                 // TODO Handle undoing a path, break out as own class
@@ -101,27 +104,64 @@ public class TouchController : MonoBehaviour
         }
     }
 
+    private bool CanAddToPath(Vector2Int coordinates) {
+        return _map.CanPlace(coordinates.x, coordinates.y) &&
+            coordinates != currentSelectedUnit.Get2DCoordinates() &&
+            (_movePath.Count == 0 || coordinates != _movePath.Peek().Get2DCoordinates());
+    }
+
     private void OnTouchEnd(Vector3 touchPosition) {
         Vector2Int coordinates = touchPosition.Get2DCoords();
         WorldObject worldObject = _map.GetObjectAtCoords(coordinates);
         if (!(worldObject is null) && !(currentSelectedUnit is null) && GameObject.ReferenceEquals(worldObject.gameObject, currentSelectedUnit)) {
             SelectUnit(selectedUnit is null ? currentSelectedUnit : null);
         }
-        bool firstPop = true;
-        while (_movePath.Count > 0) {
+        MoveFromPath();
+        CleanupTouchVars();
+    }
+
+    private void MoveFromPath() {
+        if (_movePath.Count == 0) return;
+        Stack<Vector2Int> forwardPath = new Stack<Vector2Int>();
+        bool hasUpdatedMap = false;
+        while (_movePath.Count > 0)
+        {
             GameObject pathObj = _movePath.Pop();
-            if (firstPop) {
-                firstPop = false;
-                MoveUnit(coordinates);
+            Vector2Int coords = pathObj.transform.position.Get2DCoords();
+            if (!hasUpdatedMap) {
+                _map.MoveObject(currentSelectedUnit, coords);
+                hasUpdatedMap = true;
             }
+            forwardPath.Push(coords);
             Destroy(pathObj);
         }
-        CleanupTouchVars();
+        StartCoroutine(MoveUnitAlongPath(currentSelectedUnit, forwardPath));
+    }
+
+    private IEnumerator MoveUnitAlongPath(GameObject unit, Stack<Vector2Int> path) {
+        float unitY = unit.transform.position.y;
+        Vector3 targetPosition = Vector3.zero;
+        Vector2Int coords = Vector2Int.zero;
+        while (path.Count > 0)
+        {
+            float elapsedTime = 0f;
+            coords = path.Pop();
+            Vector3 startingPos = unit.transform.position;
+            Quaternion startingRotation = unit.transform.rotation;
+            targetPosition = new Vector3(coords.x, unitY, coords.y);
+            Quaternion targetRotation = Quaternion.LookRotation((targetPosition - startingPos).normalized);
+            while (elapsedTime < timeToMove) {
+                unit.transform.position = Vector3.Lerp(startingPos, targetPosition, (elapsedTime / timeToMove));
+                unit.transform.rotation = Quaternion.Lerp(startingRotation, targetRotation, (elapsedTime / timeToMove));
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
+        }
+        SelectUnit(null);
     }
 
     private void CleanupTouchVars() {
         touchStart = null;
-        _movePath = new Stack<GameObject>();
         currentSelectedUnit = null;
         hitRotationHandle = false;
     }
@@ -133,13 +173,6 @@ public class TouchController : MonoBehaviour
         if (Physics.Raycast(_camera.ScreenPointToRay(touchPosition), out hit, Mathf.Infinity, groundMask))
             return hit.point;
         return null;
-    }
-
-    private void MoveUnit(Vector2Int coordinates)
-    {
-        _map.MoveObject(currentSelectedUnit, coordinates);
-        _cameraController.MoveToCoords(coordinates);
-        SelectUnit(null);
     }
 
     private void SelectUnit(GameObject unit)
