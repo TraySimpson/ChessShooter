@@ -16,16 +16,32 @@ public class MapController : MonoBehaviour
     [SerializeField] private WorldObject[,,] _worldMap;
     [SerializeField] private WorldEdgeObject[,,] _worldEdgesMap;
 
+    private void Awake() {
+        UnitDamage.OnUnitDied += RemoveUnit;
+    }
+
+    private void OnDisable() {
+        UnitDamage.OnUnitDied -= RemoveUnit;
+    }
+
     public void SetupMap()
     {
         ScalePlane();
         SetupGrids();
     }
 
+    public void RemoveUnit(GameObject unit) {
+        Vector2Int currentCoords = unit.Get2DCoordinates();
+        if (IsValidCoords(currentCoords))
+            _worldMap[currentCoords.x, currentCoords.y, activeLevel] = null;
+    }
+
     public bool CanPlace(int x, int y)
     {   
         return IsValidCoords(x,y) && _worldMap[x, y, activeLevel] is null;
     }
+
+    public bool IsValidCoords(Vector2Int coords) { return IsValidCoords(coords.x, coords.y);}
 
     public bool IsValidCoords(int x, int y) {
         return x >= 0 &&
@@ -36,7 +52,7 @@ public class MapController : MonoBehaviour
 
     public WorldObject GetObjectAtCoords(Vector2Int coords) 
     {
-        if (!IsValidCoords(coords.x, coords.y)) return null;
+        if (!IsValidCoords(coords)) return null;
         return _worldMap[coords.x, coords.y, activeLevel];
     }
 

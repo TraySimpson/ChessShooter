@@ -14,6 +14,8 @@ GameObject:
   - component: {fileID: 7558767441981325687}
   - component: {fileID: 7558767441981325683}
   - component: {fileID: 6405244772764173992}
+  - component: {fileID: 6179975326446588955}
+  - component: {fileID: -8204864518354185648}
   m_Layer: 9
   m_Name: Unit
   m_TagString: Untagged
@@ -134,3 +136,29 @@ MonoBehaviour:
   points: []
   fovMaterial: {fileID: 2100000, guid: 1d872f1ac021b3b488955ae7e892e022, type: 2}
   fovMesh: {fileID: 0}
+--- !u!114 &6179975326446588955
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7558767441981325686}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4bce106a26a67147959b9f1999a56d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  totalHealth: 100
+  currentHealth: 100
+--- !u!114 &-8204864518354185648
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7558767441981325686}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9b7075220f1df04ca28588b9a2611a3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

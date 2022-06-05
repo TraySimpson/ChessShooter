@@ -3,12 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
+[RequireComponent(typeof(MapController))]
+[RequireComponent(typeof(GameController))]
+[RequireComponent(typeof(WeaponController))]
 public class TouchController : MonoBehaviour
 {
     [SerializeField] private Camera _camera;
     private CameraController _cameraController;
     private MapController _map;
     private GameController _gameController;
+    private WeaponController _weaponController;
 
     // Pan
     [SerializeField] private Vector3? touchStart;
@@ -34,6 +38,7 @@ public class TouchController : MonoBehaviour
     void Start() {
         _map = GetComponent<MapController>();
         _gameController = GetComponent<GameController>();
+        _weaponController = GetComponent<WeaponController>();
         _camera = Camera.main;
         _cameraController = _camera.GetComponent<CameraController>();
         _movePath = new Stack<GameObject>();
@@ -49,8 +54,7 @@ public class TouchController : MonoBehaviour
     private void HandleSingleTouch() {
         Touch touch = Input.GetTouch(0);
         _fingerId = touch.fingerId;
-        Vector3? touchPosition = GetTouchWorldPos(touch.position, touch.phase == TouchPhase.Began);
-
+        Vector3? touchPosition = GetTouchWorldPos(touch.position);
         //Touch outside the map
         if (touchPosition is null) {
             CleanupTouchVars();
@@ -113,11 +117,19 @@ public class TouchController : MonoBehaviour
     private void OnTouchEnd(Vector3 touchPosition) {
         Vector2Int coordinates = touchPosition.Get2DCoords();
         WorldObject worldObject = _map.GetObjectAtCoords(coordinates);
-        if (!(worldObject is null) && !(currentSelectedUnit is null) && GameObject.ReferenceEquals(worldObject.gameObject, currentSelectedUnit)) {
-            SelectUnit(selectedUnit is null ? currentSelectedUnit : null);
+        if (TouchedSingleUnit(worldObject)) {
+            if (selectedUnit is null) {
+                SelectUnit(currentSelectedUnit);
+            } else {
+                _weaponController.FireAtTarget(selectedUnit, worldObject.gameObject);
+            }
         }
         MoveFromPath();
         CleanupTouchVars();
+    }
+
+    private bool TouchedSingleUnit(WorldObject worldObject) {
+        return !(worldObject is null) && !(currentSelectedUnit is null) && GameObject.ReferenceEquals(worldObject.gameObject, currentSelectedUnit);
     }
 
     private void MoveFromPath() {
@@ -166,12 +178,12 @@ public class TouchController : MonoBehaviour
         hitRotationHandle = false;
     }
 
-    public Vector3? GetTouchWorldPos(Vector3 touchPosition, bool startTouch) {
+    public Vector3? GetTouchWorldPos(Vector3 touchPosition) {
         RaycastHit hit;
-        if (Physics.Raycast(_camera.ScreenPointToRay(touchPosition), out hit, Mathf.Infinity, uiMask))
-            hitRotationHandle = true;
-        if (Physics.Raycast(_camera.ScreenPointToRay(touchPosition), out hit, Mathf.Infinity, groundMask))
+        Ray ray = _camera.ScreenPointToRay(touchPosition);
+        if (Physics.Raycast(ray, out hit, Mathf.Infinity, groundMask)) {
             return hit.point;
+        }
         return null;
     }
 
@@ -183,7 +195,7 @@ public class TouchController : MonoBehaviour
         selectedUnit = unit;
         if (!unitIsNull) {
             selectedUnit.GetComponent<Outline>().enabled = true;
-            _cameraController.MoveToCoords(selectedUnit.transform.position.Get2DCoords());
+            // _cameraController.MoveToCoords(selectedUnit.transform.position.Get2DCoords());
         }
     }
 }

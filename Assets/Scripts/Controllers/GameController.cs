@@ -8,26 +8,55 @@ public class GameController : MonoBehaviour
     [SerializeField] private int _unitsPerTeam = 5;
     [SerializeField] private GameObject _unit1Prefab;
     [SerializeField] private GameObject _unit2Prefab;
-    public GameState state;
+    public GameState State {get; set;}
 
-    private MapController map;
+    [SerializeField] private int unit1Count;
+    [SerializeField] private int unit2Count;
+
+    private MapController _map;
+
+    private void Awake() {
+        UnitDamage.OnUnitDied += UnitDied;
+    }
+
+    private void OnDisable() {
+        UnitDamage.OnUnitDied -= UnitDied;
+    }
+
+    private void UnitDied(GameObject unit) {
+        if (unit.GetComponent<Unit>().Team == Team.Team1) {
+            unit1Count--;
+        } else {
+            unit2Count--;
+        }
+        CheckForWin();
+    }
+
+    private void CheckForWin() {
+        if (unit1Count == 0)
+            print("Team 2 wins!");
+        if (unit2Count == 0)
+            print("Team 1 wins!");
+    }
 
     void Start()
     {
-        map = GetComponent<MapController>();
-        map.SetupMap();
-        int midWidth = map.unitWidth / 2;
+        _map = GetComponent<MapController>();
+        _map.SetupMap();
+        int midWidth = _map.unitWidth / 2;
+        unit1Count = 0;
+        unit2Count = 0;
         SpawnUnits(midWidth, 2);
-        SpawnUnits(midWidth, map.unitHeight - 3, true);
+        SpawnUnits(midWidth, _map.unitHeight - 3, true);
     }
 
-    private void SpawnUnits(int x, int y, bool isEnemy = false)
+    private void SpawnUnits(int x, int y, bool isTeam2 = false)
     {
         for (int i = 0; i < _unitsPerTeam; i++)
         {
-            if (map.CanPlace(x, y))
+            if (_map.CanPlace(x, y))
             {
-                SpawnUnit(x, y, isEnemy);
+                SpawnUnit(x, y, isTeam2);
             }
             else
             {
@@ -39,11 +68,17 @@ public class GameController : MonoBehaviour
         }
     }
 
-    private void SpawnUnit(int x, int y, bool isEnemy)
+    private void SpawnUnit(int x, int y, bool isTeam2)
     {
-        GameObject unit = Instantiate((isEnemy ? _unit2Prefab : _unit1Prefab), new Vector3(x, .8f, y), (isEnemy ? Quaternion.Euler(0, 180, 0) : Quaternion.identity));
+        GameObject unit = Instantiate((isTeam2 ? _unit2Prefab : _unit1Prefab), new Vector3(x, .8f, y), (isTeam2 ? Quaternion.Euler(0, 180, 0) : Quaternion.identity));
+        unit.GetComponent<Unit>().Team = isTeam2 ? Team.Team2 : Team.Team1;
         WorldObject unitObject = new WorldObject(unit, WorldObjectType.Unit);
-        map.PlaceObject(x, y, unitObject);
+        _map.PlaceObject(x, y, unitObject);
+        if (isTeam2) {
+            unit2Count++;
+        } else {
+            unit1Count++;
+        }
     }
 }
 
