@@ -9,12 +9,14 @@ public class MapController : MonoBehaviour
     [SerializeField] private int _unitHeight;
     public int unitHeight { get { return _unitHeight; } set { } }
 
+    private bool hasInitialized = false;
+
     [SerializeField] private int negativeLevels = 0;
     [SerializeField] private int positiveLevels = 1;
     [SerializeField] private int activeLevel = 0;
     [SerializeField] private GameObject _plane;
-    [SerializeField] private WorldObject[,,] _worldMap;
-    [SerializeField] private WorldEdgeObject[,,] _worldEdgesMap;
+    [SerializeField] private WorldObject[,,] WorldMap {get; set;}
+    [SerializeField] private WorldEdgeObject[,,] WorldEdgesMap { get; set; }
 
     private void Awake() {
         UnitDamage.OnUnitDied += RemoveUnit;
@@ -28,17 +30,18 @@ public class MapController : MonoBehaviour
     {
         ScalePlane();
         SetupGrids();
+        hasInitialized = true;
     }
 
     public void RemoveUnit(GameObject unit) {
         Vector2Int currentCoords = unit.Get2DCoordinates();
         if (IsValidCoords(currentCoords))
-            _worldMap[currentCoords.x, currentCoords.y, activeLevel] = null;
+            WorldMap[currentCoords.x, currentCoords.y, activeLevel] = null;
     }
 
     public bool CanPlace(int x, int y)
     {   
-        return IsValidCoords(x,y) && _worldMap[x, y, activeLevel] is null;
+        return IsValidCoords(x,y) && WorldMap[x, y, activeLevel] is null;
     }
 
     public bool IsValidCoords(Vector2Int coords) { return IsValidCoords(coords.x, coords.y);}
@@ -53,25 +56,25 @@ public class MapController : MonoBehaviour
     public WorldObject GetObjectAtCoords(Vector2Int coords) 
     {
         if (!IsValidCoords(coords)) return null;
-        return _worldMap[coords.x, coords.y, activeLevel];
+        return WorldMap[coords.x, coords.y, activeLevel];
     }
 
     public void PlaceObject(int x, int y, WorldObject placeObject) 
     {
-        _worldMap[x, y, activeLevel] = placeObject;
+        WorldMap[x, y, activeLevel] = placeObject;
     }
 
     public void PlaceObject(int x, int y, WorldEdgeObject placeObject)
     {
-        _worldEdgesMap[x, y, activeLevel] = placeObject;
+        WorldEdgesMap[x, y, activeLevel] = placeObject;
     }
 
     public void MoveObject(GameObject gameObject, Vector2Int newCoordinates) {
         //Update 3D Array
         Vector2Int currentCoords = gameObject.Get2DCoordinates();
-        WorldObject worldObject = _worldMap[currentCoords.x, currentCoords.y, activeLevel];
-        _worldMap[currentCoords.x, currentCoords.y, activeLevel] = null;
-        _worldMap[newCoordinates.x, newCoordinates.y, activeLevel] = worldObject;   
+        WorldObject worldObject = WorldMap[currentCoords.x, currentCoords.y, activeLevel];
+        WorldMap[currentCoords.x, currentCoords.y, activeLevel] = null;
+        WorldMap[newCoordinates.x, newCoordinates.y, activeLevel] = worldObject;   
     }
 
     private void ScalePlane() {
@@ -84,8 +87,8 @@ public class MapController : MonoBehaviour
 
     private void SetupGrids() {
         int levelCount = negativeLevels + positiveLevels;
-        _worldMap = new WorldObject[unitWidth, unitHeight, levelCount];
-        _worldEdgesMap = new WorldEdgeObject[unitWidth, (unitHeight * 2) - 1, levelCount];
+        WorldMap = new WorldObject[unitWidth, unitHeight, levelCount];
+        WorldEdgesMap = new WorldEdgeObject[unitWidth, (unitHeight * 2) - 1, levelCount];
     }
 
     // private void FillWorldGrid<T>(ref T[,] grid, T fillObject) {
@@ -96,28 +99,69 @@ public class MapController : MonoBehaviour
     //         }
     //     }
     // }
+
+    public WorldObject GetObjectAt(int x, int y) {
+        return WorldMap[x, y, activeLevel];
+    }
+
+    public bool PlaceRoomSeed(int x, int y, int roomId)
+    {
+        if (!(WorldMap[x, y, activeLevel] is null)) return false;
+        WorldMap[x, y, activeLevel] = new WorldObject(roomId);
+        return true;
+    }
+
+    // private void OnDrawGizmos() {
+    //     if (!hasInitialized) return;
+    //     for (int i = 0; i < unitWidth; i++) {
+    //         for (int j = 0; j < unitHeight; j++) {
+    //             WorldObject worldObject = WorldMap[i, j, activeLevel];
+    //             if (worldObject is null) continue;
+    //             Gizmos.color = GetColorFromID(worldObject.RoomId);
+    //             Gizmos.DrawCube(new Vector3(i, activeLevel, j), Vector3.one);
+    //         }
+    //     }
+    // }
+
+    private Color GetColorFromID(int id) {
+        Random.InitState(id);
+        return Random.ColorHSV();
+    }
 }
 
 public class WorldEdgeObject
 {
-    public GameObject gameObject { get; set; }
-    public WorldEdgeObjectType type { get; set;}
+    public GameObject GameObject { get; set; }
+    public WorldEdgeObjectType Type { get; set;}
 
     public WorldEdgeObject(GameObject gameObject, WorldEdgeObjectType type) 
     {
-        this.gameObject = gameObject;
-        this.type = type;
+        this.GameObject = gameObject;
+        this.Type = type;
     }
 }
 
 public class WorldObject {
-    public GameObject gameObject {get; set;}
-    public WorldObjectType type { get; set; }
+    public GameObject GameObject {get; set;}
+    public WorldObjectType Type { get; set; }
+    public int RoomId { get; set; }
 
-    public WorldObject(GameObject gameObject, WorldObjectType type)
+
+    public WorldObject(GameObject gameObject, WorldObjectType type, int roomId)
     {
-        this.gameObject = gameObject;
-        this.type = type;
+        this.GameObject = gameObject;
+        this.Type = type;
+        this.RoomId = roomId;
+    }
+
+    public WorldObject(int roomId)
+    {
+        this.RoomId = roomId;
+    }
+
+    public override string ToString()
+    {
+        return $"Room Id: {RoomId}";
     }
 }
 

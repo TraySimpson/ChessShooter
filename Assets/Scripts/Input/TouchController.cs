@@ -6,6 +6,7 @@ using UnityEngine.EventSystems;
 [RequireComponent(typeof(MapController))]
 [RequireComponent(typeof(GameController))]
 [RequireComponent(typeof(WeaponController))]
+[RequireComponent(typeof(MovePath))]
 public class TouchController : MonoBehaviour
 {
     [SerializeField] private Camera _camera;
@@ -27,21 +28,19 @@ public class TouchController : MonoBehaviour
     [SerializeField] private float timeToMove = .2f;
 
     // Unit Control
-    private Stack<GameObject> _movePath;
+    private MovePath _movePath;
     private GameObject selectedUnit;
     private GameObject currentSelectedUnit;
     private int groundMask;
     private int uiMask;
 
-    [SerializeField] private GameObject pathPrefab;
-
     void Start() {
         _map = GetComponent<MapController>();
         _gameController = GetComponent<GameController>();
         _weaponController = GetComponent<WeaponController>();
+        _movePath = GetComponent<MovePath>();
         _camera = Camera.main;
         _cameraController = _camera.GetComponent<CameraController>();
-        _movePath = new Stack<GameObject>();
         groundMask = LayerMask.GetMask("Ground");
         uiMask = LayerMask.GetMask("UI");
     }
@@ -79,8 +78,8 @@ public class TouchController : MonoBehaviour
     private void OnTouchBegin(Vector3 touchPosition) {
         Vector2Int coordinates = touchPosition.Get2DCoords();
         WorldObject worldObject = _map.GetObjectAtCoords(coordinates);
-        if (!(worldObject is null) && worldObject.type == WorldObjectType.Unit)
-            currentSelectedUnit = worldObject.gameObject;
+        if (!(worldObject is null) && worldObject.Type == WorldObjectType.Unit)
+            currentSelectedUnit = worldObject.GameObject;
         if (!(selectedUnit is null) && EventSystem.current.IsPointerOverGameObject(_fingerId)) {
             hitRotationHandle = true;
             startRotation = selectedUnit.transform.rotation;
@@ -92,9 +91,7 @@ public class TouchController : MonoBehaviour
         if (!(currentSelectedUnit is null)) {
             Vector2Int coordinates = touchPosition.Get2DCoords();
             if (CanAddToPath(coordinates)) {
-                GameObject pathObject = Instantiate(pathPrefab, coordinates.ToVector3(), Quaternion.identity);
-                _movePath.Push(pathObject);
-                // TODO Handle undoing a path, break out as own class
+                _movePath.AddCoords(coordinates, _gameController.CurrentActionPoints);
             }
         } else if (!(touchStart is null)) {
             if (hitRotationHandle && !(selectedUnit is null)) {
@@ -110,8 +107,7 @@ public class TouchController : MonoBehaviour
 
     private bool CanAddToPath(Vector2Int coordinates) {
         return _map.CanPlace(coordinates.x, coordinates.y) &&
-            coordinates != currentSelectedUnit.Get2DCoordinates() &&
-            (_movePath.Count == 0 || coordinates != _movePath.Peek().Get2DCoordinates());
+            coordinates != currentSelectedUnit.Get2DCoordinates();
     }
 
     private void OnTouchEnd(Vector3 touchPosition) {
@@ -121,7 +117,8 @@ public class TouchController : MonoBehaviour
             if (selectedUnit is null) {
                 SelectUnit(currentSelectedUnit);
             } else {
-                _weaponController.FireAtTarget(selectedUnit, worldObject.gameObject);
+                _weaponController.FireAtTarget(selectedUnit, worldObject.GameObject);
+                _gameController.CurrentActionPoints--;
             }
         }
         MoveFromPath();
@@ -129,25 +126,17 @@ public class TouchController : MonoBehaviour
     }
 
     private bool TouchedSingleUnit(WorldObject worldObject) {
-        return !(worldObject is null) && !(currentSelectedUnit is null) && GameObject.ReferenceEquals(worldObject.gameObject, currentSelectedUnit);
+        return !(worldObject is null) && !(currentSelectedUnit is null) && GameObject.ReferenceEquals(worldObject.GameObject, currentSelectedUnit);
     }
 
     private void MoveFromPath() {
-        if (_movePath.Count == 0) return;
-        Stack<Vector2Int> forwardPath = new Stack<Vector2Int>();
-        bool hasUpdatedMap = false;
-        while (_movePath.Count > 0)
-        {
-            GameObject pathObj = _movePath.Pop();
-            Vector2Int coords = pathObj.transform.position.Get2DCoords();
-            if (!hasUpdatedMap) {
-                _map.MoveObject(currentSelectedUnit, coords);
-                hasUpdatedMap = true;
-            }
-            forwardPath.Push(coords);
-            Destroy(pathObj);
-        }
+        if (_movePath.IsEmpty()) return;
+        int actionPoints = _movePath.GetPathLength();
+        Vector2Int coords = _movePath.GetLast().transform.position.Get2DCoords();
+        _map.MoveObject(currentSelectedUnit, coords);
+        Stack<Vector2Int> forwardPath = _movePath.GetForwardPath();
         StartCoroutine(MoveUnitAlongPath(currentSelectedUnit, forwardPath));
+        _gameController.CurrentActionPoints -= actionPoints;
     }
 
     private IEnumerator MoveUnitAlongPath(GameObject unit, Stack<Vector2Int> path) {

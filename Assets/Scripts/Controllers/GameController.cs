@@ -6,9 +6,19 @@ using UnityEngine;
 public class GameController : MonoBehaviour
 {
     [SerializeField] private int _unitsPerTeam = 5;
+    [SerializeField] private int _actionPointsPerTurn = 6;
     [SerializeField] private GameObject _unit1Prefab;
     [SerializeField] private GameObject _unit2Prefab;
-    public GameState State {get; set;}
+    public GameState State {get; private set;}
+    private int _currentActionPoints;
+    public int CurrentActionPoints { 
+        get => _currentActionPoints;
+        set {
+            _currentActionPoints = value;
+            if (_currentActionPoints < 1)
+                EndTurn();
+        }
+    }
 
     [SerializeField] private int unit1Count;
     [SerializeField] private int unit2Count;
@@ -21,6 +31,17 @@ public class GameController : MonoBehaviour
 
     private void OnDisable() {
         UnitDamage.OnUnitDied -= UnitDied;
+    }
+
+    public void EndTurn() {
+        State = State == GameState.Team1Turn ? GameState.Team2Turn :  GameState.Team1Turn;
+        CurrentActionPoints = _actionPointsPerTurn;
+
+        if (State == GameState.Team2Turn) {
+            //TODO
+            print("Skipped NPC Turn");
+            EndTurn();
+        }
     }
 
     private void UnitDied(GameObject unit) {
@@ -48,6 +69,8 @@ public class GameController : MonoBehaviour
         unit2Count = 0;
         SpawnUnits(midWidth, 2);
         SpawnUnits(midWidth, _map.unitHeight - 3, true);
+        State = GameState.Team2Turn;
+        EndTurn();
     }
 
     private void SpawnUnits(int x, int y, bool isTeam2 = false)
@@ -72,7 +95,7 @@ public class GameController : MonoBehaviour
     {
         GameObject unit = Instantiate((isTeam2 ? _unit2Prefab : _unit1Prefab), new Vector3(x, .8f, y), (isTeam2 ? Quaternion.Euler(0, 180, 0) : Quaternion.identity));
         unit.GetComponent<Unit>().Team = isTeam2 ? Team.Team2 : Team.Team1;
-        WorldObject unitObject = new WorldObject(unit, WorldObjectType.Unit);
+        WorldObject unitObject = new WorldObject(unit, WorldObjectType.Unit, 0);
         _map.PlaceObject(x, y, unitObject);
         if (isTeam2) {
             unit2Count++;

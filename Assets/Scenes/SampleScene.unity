@@ -686,6 +686,7 @@ GameObject:
   - component: {fileID: 1080847021}
   - component: {fileID: 1080847022}
   - component: {fileID: 1080847023}
+  - component: {fileID: 1080847024}
   m_Layer: 0
   m_Name: GameController
   m_TagString: Untagged
@@ -705,8 +706,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33d289f6f1f7f73479bd33d281ff3b4c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _unitWidth: 20
-  _unitHeight: 20
+  _unitWidth: 25
+  _unitHeight: 25
   negativeLevels: 0
   positiveLevels: 1
   activeLevel: 0
@@ -737,10 +738,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08050b744f4cc6a4c8354bbe7bbe5e9e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _unitsPerTeam: 1
+  _unitsPerTeam: 3
   _unit1Prefab: {fileID: 7558767441981325686, guid: 0c75598d58a14204f94610e24378964a, type: 3}
   _unit2Prefab: {fileID: 422221897175966397, guid: aa9f8f9b9d74e15448b5f0b4858d74bd, type: 3}
-  state: 0
+  unit1Count: 0
+  unit2Count: 0
 --- !u!114 &1080847022
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -756,7 +758,6 @@ MonoBehaviour:
   _camera: {fileID: 1687258584}
   rotationSpeed: 50
   timeToMove: 0.2
-  pathPrefab: {fileID: 8925784563854462072, guid: 8ac42f60731e7e74d82765bcfacd48e2, type: 3}
 --- !u!114 &1080847023
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -769,6 +770,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ec6b73079c74f44097b043e9cdc7bd4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1080847024
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1080847018}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33d265acfb247bb49bee7268354f71d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _pathPrefab: {fileID: 8925784563854462072, guid: 8ac42f60731e7e74d82765bcfacd48e2, type: 3}
 --- !u!1 &1104299016
 GameObject:
   m_ObjectHideFlags: 0

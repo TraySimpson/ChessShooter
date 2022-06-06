@@ -6,9 +6,9 @@ public static class ExtensionMethods
 {
     const int CAMERA_Z_OFFSET = 4;
 
-
     // Vector Extensions
-    public static Vector2Int Get2DCoordinates(this GameObject gameObject) {
+    public static Vector2Int Get2DCoordinates(this GameObject gameObject) 
+    {
         return new Vector2Int(
             Mathf.RoundToInt(gameObject.transform.position.x),
             Mathf.RoundToInt(gameObject.transform.position.z));
@@ -37,5 +37,11 @@ public static class ExtensionMethods
             Mathf.RoundToInt(vector.z),
             Mathf.FloorToInt(vector.y)
         );
+    }
+
+    // List
+    public static T Peek<T>(this List<T> list) 
+    {
+        return list.Count != 0 ? list[list.Count - 1] : default(T);
     }
 }
