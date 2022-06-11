@@ -44,4 +44,11 @@ public static class ExtensionMethods
     {
         return list.Count != 0 ? list[list.Count - 1] : default(T);
     }
+
+    public static T GetAndRemove<T>(this List<T> list, int index) 
+    {
+        T item = list[index];
+        list.RemoveAt(index);
+        return item;
+    }
 }

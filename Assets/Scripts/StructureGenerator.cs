@@ -7,10 +7,19 @@ public class StructureGenerator : MonoBehaviour
 {
     [SerializeField] private int paddingOffset = 3;
     [SerializeField] private int seed;
-    [SerializeField] private int minRoomNumber = 3;
-    [SerializeField] private int minAverageRoomSize = 7;
-    [SerializeField] private int maxAverageRoomSize = 40;
+    [SerializeField] private int minRoomNumber = 7;
+    [SerializeField] private int minAverageRoomSize = 15;
+    [SerializeField] private int maxAverageRoomSize = 25;
     [SerializeField] private float roomSizeVariationPercent = .2f;
+    [SerializeField] private float? filledSpacePercentageOverride = .75f;
+
+    [SerializeField] private const float oneDoorRoomPercentStep = .2f;
+    [SerializeField] private const float twoDoorRoomPercentStep = .4f;
+    [SerializeField] private const float threeDoorRoomPercentStep = .9f;
+
+    private int minXYvalue;
+    private int maxXValue;
+    private int maxYValue;
 
     private MapController _map;
 
@@ -25,13 +34,13 @@ public class StructureGenerator : MonoBehaviour
         width -= paddingOffset * 2;
         height -= paddingOffset * 2;
 
-        int minXYvalue = paddingOffset - 1;
-        int maxXValue = width + paddingOffset - 1;
-        int maxYValue = height + paddingOffset - 1;
+        minXYvalue = paddingOffset;
+        maxXValue = width + paddingOffset - 1;
+        maxYValue = height + paddingOffset - 1;
         int totalLotSize = width * height;
         
         // Percentage of lot space used
-        float filledSpacePercentage = Random.Range(.2f, 1);
+        float filledSpacePercentage = filledSpacePercentageOverride ?? Random.Range(.4f, 1);
         int lotSize = Mathf.RoundToInt(totalLotSize * filledSpacePercentage);
         if (lotSize < minRoomNumber * minAverageRoomSize) 
             lotSize = minRoomNumber * minAverageRoomSize;
@@ -45,110 +54,162 @@ public class StructureGenerator : MonoBehaviour
         }
 
         // Determine number of main rooms
-        int numberOfMainRooms = Mathf.FloorToInt(lotSize/averageRoomSize);
+        int numberOfMainRooms = Mathf.FloorToInt((lotSize * filledSpacePercentage)/averageRoomSize);
 
-        print($"Building house with \nTotal lot: {totalLotSize} \nUsed lot: {lotSize} \nRoom count: {numberOfMainRooms} \nAverage room size: {averageRoomSize}");
+        print($"Building house with total lot: {totalLotSize}     Used lot: {lotSize}      Room count: {numberOfMainRooms}      Average room size: {averageRoomSize}");
 
-        int remainingRoomSpace = lotSize;
         int minRoomSize = Mathf.FloorToInt(averageRoomSize * (1-roomSizeVariationPercent));
-        int maxRoomSize = Mathf.CeilToInt(averageRoomSize * (1 + roomSizeVariationPercent));
+        int maxRoomSize = Mathf.CeilToInt(averageRoomSize * (1 + roomSizeVariationPercent)) + 1;
+        print($"Min room size: {minRoomSize}    Max room size: {maxRoomSize-1}");
 
-        Stack<Vector2Int> roomStack = new Stack<Vector2Int>();
-        Vector2Int startCoords = new Vector2Int(Random.Range(minXYvalue, maxXValue), minXYvalue);
-        roomStack.Push(startCoords);
+        print($"Bindbox with minXY: {minXYvalue}    width: {width}    height: {height}");
+        GridRectangle lotRectangle = new GridRectangle(minXYvalue, minXYvalue, width, height);
+        _map.DrawBoundingBox(lotRectangle);
+        List<Vector2Int> externalDoors = new List<Vector2Int>();
 
-        for(int i = 0; i < numberOfMainRooms; i++) {
+        int roomSpaceBudget = averageRoomSize * numberOfMainRooms;
+        FactorStore factorStore = new FactorStore();
+        for (int i = 0; i < numberOfMainRooms; i++) {
+            Vector2Int startPosition = externalDoors.Count != 0 ?
+                externalDoors.GetAndRemove(Random.Range(0, externalDoors.Count)) :
+                lotRectangle.GetRandomEdgePosition();
+
             int roomSize = Random.Range(minRoomSize, maxRoomSize);
-            int edgeSize = Mathf.RoundToInt(Mathf.Sqrt(roomSize));
-            int edgeSplit = Random.Range(0, edgeSize);
-            Vector2Int direction = GetRandomDirection();
-            Vector2Int currentCoords = startCoords;
-            int usedSquareUnits = 0;
-            for(int j = 0; j < edgeSize; j++) {
-                if (!_map.PlaceRoomSeed(currentCoords.x, currentCoords.y, i)) {
-                    
-                }
+            List<int> factors = factorStore.GetFactors(roomSize);
+            //Prime value encountered
+            if (factors.Count == 0) {
+                print("skipping prime for now");
+                continue;
+            }
+            int roomWidth = factors[Random.Range(0, factors.Count)];
+            GridRectangle roomRectangle = new GridRectangle(startPosition, roomWidth, roomSize/roomWidth);
+            _map.FillRectangle(roomRectangle, i);
+            for (int doorIndex = 0; doorIndex < GetRandomNumberOfDoors(); doorIndex ++) {
+                externalDoors.Add(roomRectangle.GetRandomEdgePosition(1));
             }
         }
     }
 
-    private Vector2Int GetRandomDirection() {
-        switch(Random.Range(0, 4)) {
+    public int GetRandomNumberOfDoors() {
+        float determiner = Random.Range(0f, 1f);
+        if (determiner < oneDoorRoomPercentStep)
+            return 1;
+        if (determiner < twoDoorRoomPercentStep)
+            return 1;
+        if (determiner < threeDoorRoomPercentStep)
+            return 1;
+        return 4;
+    }
+}
+
+public class GridRectangle {
+    public int Height { get; set; }
+    public int Width { get; set; }
+    // Bottom Left coordinate (inclusive)
+    public Vector2Int Origin { get; set; }
+
+    public GridRectangle(Vector2Int origin, int width, int height) {
+        this.Origin = origin;
+        this.Height = height;
+        this.Width = width;
+    }
+    public GridRectangle(int originX, int originY, int width, int height) {
+        this.Origin = new Vector2Int(originX, originY);
+        this.Height = height;
+        this.Width = width;
+    }
+
+    public int GetMinX() => Origin.x;
+    public int GetMinY() => Origin.y;
+    public int GetMaxX() => Origin.x + Width - 1;
+    public int GetMaxY() => Origin.y + Height - 1;
+
+    public Vector2Int GetRandomEdgePosition(int offset = 0) {
+        int direction = Random.Range(0, 4);
+        int xValue = 0;
+        int yValue = 0;
+        switch (direction) {
             case 0:
-                return Vector2Int.down;
+                xValue = Random.Range(GetMinX(), GetMaxX());
+                yValue = GetMaxY() + offset;
+                break;
             case 1:
-                return Vector2Int.up;
-            case 2: 
-                return Vector2Int.left;
+                xValue = GetMaxX() + offset;
+                yValue = Random.Range(GetMinY(), GetMaxY());
+                break;
+            case 2:
+                xValue = Random.Range(GetMinX(), GetMaxX());
+                yValue = GetMinY() - offset;
+                break;
             default:
-                return Vector2Int.right;
+                xValue = GetMinX() - offset;
+                yValue = Random.Range(GetMinY(), GetMaxY());
+                break;
         }
-    }
-
-
-
-
-
-
-
-
-
-    //OLD ROOM SEED GENERATION
-    //     for(int i = 0; i < numberOfMainRooms; i++) {
-    //     int x;
-    //     int y;
-    //     do {
-    //         x = Random.Range(minXYvalue, maxXValue);
-    //         y = Random.Range(minXYvalue, maxXValue);
-    //     }
-    //     while(!(_map.PlaceRoomSeed(x, y, i)));
-    // }
-
-
-
-    // List<RoomType> rooms = GetRoomTypes();
-    // List<RoomType> requiredRooms = rooms.FindAll(r => r.IsRequired);
-
-    //OLD ROOM LIST
-    // public List<RoomType> GetRoomTypes() {
-    //     List<RoomType> rooms = new List<RoomType>();
-    //     rooms.Add(new RoomType("kitchen", true, 9, 36));
-    //     rooms.Add(new RoomType("bathroom", true, 4, 15));
-    //     rooms.Add(new RoomType("bedroom", true, 6, 36));
-
-    //     rooms.Add(new RoomType("livingroom", false, 9, 36));
-    //     rooms.Add(new RoomType("closet", false, 1, 6));
-    //     rooms.Add(new RoomType("diningroom", false, 9, 36));
-    //     return rooms;
-    // }
-}
-
-public class RoomType {
-    public string Name { get; set; }
-    public bool IsRequired { get; set; }
-    public int MinSquareSize { get; set; }
-    public int MaxSquareSize { get; set; }
-
-    public RoomType(string name, bool required, int min, int max) {
-        Name = name;
-        IsRequired = required;
-        MinSquareSize = min;
-        MaxSquareSize = max;
+        return new Vector2Int(xValue, yValue);
     }
 }
 
-public enum PorchType 
-{
-    None = 0,
-    Front = 1,
-    Back = 2,
-    Both = 3,
-    Wrap = 4
-}
 
-public enum Garage
-{
-    None = 0,
-    Single = 1,
-    Double = 2
-}
+
+
+
+
+//OLD ROOM SEED GENERATION
+//     for(int i = 0; i < numberOfMainRooms; i++) {
+//     int x;
+//     int y;
+//     do {
+//         x = Random.Range(minXYvalue, maxXValue);
+//         y = Random.Range(minXYvalue, maxXValue);
+//     }
+//     while(!(_map.PlaceRoomSeed(x, y, i)));
+// }
+
+
+
+// List<RoomType> rooms = GetRoomTypes();
+// List<RoomType> requiredRooms = rooms.FindAll(r => r.IsRequired);
+
+//OLD ROOM LIST
+// public List<RoomType> GetRoomTypes() {
+//     List<RoomType> rooms = new List<RoomType>();
+//     rooms.Add(new RoomType("kitchen", true, 9, 36));
+//     rooms.Add(new RoomType("bathroom", true, 4, 15));
+//     rooms.Add(new RoomType("bedroom", true, 6, 36));
+
+//     rooms.Add(new RoomType("livingroom", false, 9, 36));
+//     rooms.Add(new RoomType("closet", false, 1, 6));
+//     rooms.Add(new RoomType("diningroom", false, 9, 36));
+//     return rooms;
+// }
+
+// public class RoomType {
+//     public string Name { get; set; }
+//     public bool IsRequired { get; set; }
+//     public int MinSquareSize { get; set; }
+//     public int MaxSquareSize { get; set; }
+
+//     public RoomType(string name, bool required, int min, int max) {
+//         Name = name;
+//         IsRequired = required;
+//         MinSquareSize = min;
+//         MaxSquareSize = max;
+//     }
+// }
+
+// public enum PorchType 
+// {
+//     None = 0,
+//     Front = 1,
+//     Back = 2,
+//     Both = 3,
+//     Wrap = 4
+// }
+
+// public enum Garage
+// {
+//     None = 0,
+//     Single = 1,
+//     Double = 2
+// }

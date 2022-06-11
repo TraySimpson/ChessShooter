@@ -111,17 +111,44 @@ public class MapController : MonoBehaviour
         return true;
     }
 
-    // private void OnDrawGizmos() {
-    //     if (!hasInitialized) return;
-    //     for (int i = 0; i < unitWidth; i++) {
-    //         for (int j = 0; j < unitHeight; j++) {
-    //             WorldObject worldObject = WorldMap[i, j, activeLevel];
-    //             if (worldObject is null) continue;
-    //             Gizmos.color = GetColorFromID(worldObject.RoomId);
-    //             Gizmos.DrawCube(new Vector3(i, activeLevel, j), Vector3.one);
-    //         }
-    //     }
-    // }
+    public void DrawBoundingBox(GridRectangle rectangle) {
+        WorldObject roomObject = new WorldObject(1000);
+        int minY = rectangle.GetMinY() - 1;
+        int maxY = rectangle.GetMaxY() + 1;
+        for (int x = 0; x < _unitWidth; x++)
+        {
+            WorldMap[x, minY, activeLevel] = roomObject;
+            WorldMap[x, maxY, activeLevel] = roomObject;
+        }
+        int minX = rectangle.GetMinX() - 1;
+        int maxX = rectangle.GetMaxX() + 1;
+        for (int y = 0; y < _unitHeight; y++)
+        {
+            WorldMap[minX, y, activeLevel] = roomObject;
+            WorldMap[maxX, y, activeLevel] = roomObject;
+        }
+    }
+
+    public void FillRectangle(GridRectangle rectangle, int roomId) {
+        WorldObject roomObject = new WorldObject(roomId);
+        for (int x = rectangle.GetMinX(); x <= rectangle.GetMaxX(); x++) {
+            for (int y = rectangle.GetMinY(); y <= rectangle.GetMaxY(); y++) {
+                WorldMap[x, y, activeLevel] = roomObject;
+            }
+        }
+    }
+
+    private void OnDrawGizmos() {
+        if (!hasInitialized) return;
+        for (int i = 0; i < unitWidth; i++) {
+            for (int j = 0; j < unitHeight; j++) {
+                WorldObject worldObject = WorldMap[i, j, activeLevel];
+                if (worldObject is null) continue;
+                Gizmos.color = GetColorFromID(worldObject.RoomId);
+                Gizmos.DrawCube(new Vector3(i, activeLevel, j), Vector3.one);
+            }
+        }
+    }
 
     private Color GetColorFromID(int id) {
         Random.InitState(id);
