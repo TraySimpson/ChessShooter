@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
 
 [RequireComponent(typeof(MapController))]
 public class GameController : MonoBehaviour
@@ -95,7 +95,7 @@ public class GameController : MonoBehaviour
         }
     }
 
-    async void Start()
+    void Start()
     {
         _map = GetComponent<MapController>();
         _map.SetupMap();
@@ -105,6 +105,15 @@ public class GameController : MonoBehaviour
         SpawnUnits(midWidth, 2);
         SpawnUnits(midWidth, _map.unitHeight - 3, true);
         State = GameState.Team2Turn;
+        StartCoroutine(WaitToStart(.5f));
+    }
+
+    // TODO fix this to properly wait for load finish
+    private IEnumerator WaitToStart(float timeDelay) {
+        float end = Time.time + timeDelay;
+        while (Time.time < end) {
+            yield return null;
+        }
         EndTurn();
     }
 
