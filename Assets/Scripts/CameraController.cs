@@ -10,11 +10,36 @@ public class CameraController : MonoBehaviour
     private float smoothTime = 4f;
     private Vector3 velocity = Vector3.zero;
     private Vector3? targetPosition;
+    private bool isFlipped;
 
+    #region Turn Events
+    private void Awake()
+    {
+        GameController.OnTurnChanged += ChangeTurn;
+    }
+
+    private void OnDestroy()
+    {
+        GameController.OnTurnChanged -= ChangeTurn;
+    }
+
+    public void ChangeTurn(GameState state, Vector2Int position) 
+    {
+        if (state == GameState.Team1Turn) {
+            transform.rotation = Quaternion.Euler(60, 0, 0);
+            isFlipped = false;
+        } else {
+            transform.rotation = Quaternion.Euler(60, 180, 0);
+            isFlipped = true;
+        }
+        MoveToCoords(position);
+    }
+    #endregion
 
     private void Start()
     {
         targetPosition = null;
+        isFlipped = false;
     }
 
     private void Update()
@@ -33,7 +58,7 @@ public class CameraController : MonoBehaviour
         targetPosition = new Vector3(
             coordinates.x,
             transform.position.y,
-            coordinates.y - CAMERA_Z_OFFSET
+            (isFlipped ? coordinates.y + CAMERA_Z_OFFSET : coordinates.y - CAMERA_Z_OFFSET)
         );
     }
 
@@ -42,7 +67,7 @@ public class CameraController : MonoBehaviour
         targetPosition = new Vector3(
             coordinates.x,
             transform.position.y + yAdjustment,
-            coordinates.y - CAMERA_Z_OFFSET
+            (isFlipped ? coordinates.y + CAMERA_Z_OFFSET : coordinates.y - CAMERA_Z_OFFSET)
         );
     }
 }

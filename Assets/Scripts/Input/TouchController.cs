@@ -131,15 +131,15 @@ public class TouchController : MonoBehaviour
 
     private void MoveFromPath() {
         if (_movePath.IsEmpty()) return;
-        int actionPoints = _movePath.GetPathLength();
         Vector2Int coords = _movePath.GetLast().transform.position.Get2DCoords();
         _map.MoveObject(currentSelectedUnit, coords);
         Stack<Vector2Int> forwardPath = _movePath.GetForwardPath();
         StartCoroutine(MoveUnitAlongPath(currentSelectedUnit, forwardPath));
-        _gameController.CurrentActionPoints -= actionPoints;
     }
 
     private IEnumerator MoveUnitAlongPath(GameObject unit, Stack<Vector2Int> path) {
+        // TODO Disable move input
+        int actionPoints = path.Count;
         float unitY = unit.transform.position.y;
         Vector3 targetPosition = Vector3.zero;
         Vector2Int coords = Vector2Int.zero;
@@ -158,7 +158,10 @@ public class TouchController : MonoBehaviour
                 yield return null;
             }
         }
+        print($"Removing {actionPoints} ap");
+        _gameController.CurrentActionPoints -= actionPoints;
         SelectUnit(null);
+        // TODO Enable move input
     }
 
     private void CleanupTouchVars() {

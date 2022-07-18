@@ -27,7 +27,8 @@ public class UnitFOV : MonoBehaviour
 
     private void SetupMesh() {
         fovObject = new GameObject("FOV", typeof(MeshRenderer), typeof(MeshFilter));
-        fovObject.transform.localScale = transform.localScale;
+        fovObject.transform.parent = transform;
+        fovObject.transform.localScale = Vector3.one;
         fovMesh = new Mesh();
         fovObject.GetComponent<MeshFilter>().mesh = fovMesh;
         fovObject.GetComponent<MeshRenderer>().material = fovMaterial;
@@ -41,6 +42,16 @@ public class UnitFOV : MonoBehaviour
         if (transform.hasChanged) {
             CalculateFOV();
             transform.hasChanged = false;
+        }
+    }
+
+    public void Toggle(bool enabled) {
+        if (enabled) {
+            this.enabled = true;
+            fovObject.SetActive(true);
+        } else {
+            this.enabled = false;
+            fovObject.SetActive(false);
         }
     }
 

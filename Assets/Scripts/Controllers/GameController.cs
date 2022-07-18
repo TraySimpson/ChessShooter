@@ -1,14 +1,28 @@
-using System.Collections;
+using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+
 
 [RequireComponent(typeof(MapController))]
 public class GameController : MonoBehaviour
 {
+
+    #region Events
+    public static event Action<GameState, Vector2Int> OnTurnChanged = delegate { };
+    public static event Action<GameState> OnGameEnded = delegate { };
+    #endregion
+
     [SerializeField] private int _unitsPerTeam = 5;
     [SerializeField] private int _actionPointsPerTurn = 6;
     [SerializeField] private GameObject _unit1Prefab;
     [SerializeField] private GameObject _unit2Prefab;
+
+    public List<GameObject> Team1;
+    public List<GameObject> Team2;
+    public List<UnitFOV> Team1FOVs;
+    public List<UnitFOV> Team2FOVs;
+
     public GameState State {get; private set;}
     private int _currentActionPoints;
     public int CurrentActionPoints { 
@@ -19,9 +33,6 @@ public class GameController : MonoBehaviour
                 EndTurn();
         }
     }
-
-    [SerializeField] private int unit1Count;
-    [SerializeField] private int unit2Count;
 
     private MapController _map;
 
@@ -34,39 +45,63 @@ public class GameController : MonoBehaviour
     }
 
     public void EndTurn() {
-        State = State == GameState.Team1Turn ? GameState.Team2Turn :  GameState.Team1Turn;
         CurrentActionPoints = _actionPointsPerTurn;
+        State = State == GameState.Team1Turn ? GameState.Team2Turn : GameState.Team1Turn;
+        ToggleFOVs();
+        OnTurnChanged.Invoke(State, GetRandomUnitPos());
+    }
 
-        if (State == GameState.Team2Turn) {
-            //TODO
-            print("Skipped NPC Turn");
-            EndTurn();
+    public void ToggleFOVs() {
+        foreach (var fov in Team1FOVs)
+        {
+            fov.Toggle(State == GameState.Team1Turn);
+        }
+
+        foreach (var fov in Team2FOVs)
+        {
+            fov.Toggle(State == GameState.Team2Turn);
         }
     }
 
+    public Vector2Int GetRandomUnitPos() {
+        return State == GameState.Team1Turn ?
+            Team1.First().transform.position.Get2DCoords() :
+            Team2.First().transform.position.Get2DCoords();
+     }
+
     private void UnitDied(GameObject unit) {
         if (unit.GetComponent<Unit>().Team == Team.Team1) {
-            unit1Count--;
+            UnitFOV fov = unit.GetComponent<UnitFOV>();
+            Team1FOVs.Remove(fov);
+            Team1.Remove(unit);
         } else {
-            unit2Count--;
+            UnitFOV fov = unit.GetComponent<UnitFOV>();
+            Team2FOVs.Remove(fov);
+            Team2.Remove(unit);
         }
         CheckForWin();
     }
 
     private void CheckForWin() {
-        if (unit1Count == 0)
+        if (Team1.Count == 0) {
             print("Team 2 wins!");
-        if (unit2Count == 0)
+            State = GameState.Team2Win;
+            OnGameEnded.Invoke(State);
+        }
+        if (Team2.Count == 0) {
             print("Team 1 wins!");
+            State = GameState.Team1Win;
+            OnGameEnded.Invoke(State);
+        }
     }
 
-    void Start()
+    async void Start()
     {
         _map = GetComponent<MapController>();
         _map.SetupMap();
         int midWidth = _map.unitWidth / 2;
-        unit1Count = 0;
-        unit2Count = 0;
+        Team1 = new List<GameObject>();
+        Team2 = new List<GameObject>();
         SpawnUnits(midWidth, 2);
         SpawnUnits(midWidth, _map.unitHeight - 3, true);
         State = GameState.Team2Turn;
@@ -84,8 +119,8 @@ public class GameController : MonoBehaviour
             else
             {
                 //TODO fix this shit lol
-                x += Random.Range(-1, 2);
-                y += Random.Range(-1, 2);
+                x += UnityEngine.Random.Range(-1, 2);
+                y += UnityEngine.Random.Range(-1, 2);
                 i--;
             }
         }
@@ -98,9 +133,11 @@ public class GameController : MonoBehaviour
         WorldObject unitObject = new WorldObject(unit, WorldObjectType.Unit, 0);
         _map.PlaceObject(x, y, unitObject);
         if (isTeam2) {
-            unit2Count++;
+            Team2.Add(unit);
+            Team2FOVs.Add(unit.GetComponent<UnitFOV>());
         } else {
-            unit1Count++;
+            Team1.Add(unit);
+            Team1FOVs.Add(unit.GetComponent<UnitFOV>());
         }
     }
 }

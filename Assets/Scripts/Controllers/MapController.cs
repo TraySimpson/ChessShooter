@@ -214,27 +214,27 @@ public class MapController : MonoBehaviour
         }
     }
 
-    private void OnDrawGizmos() {
-        if (!hasInitialized) return;
-        for (int i = 0; i < unitWidth; i++) {
-            for (int j = 0; j < unitHeight; j++) {
-                WorldObject worldObject = WorldMap[i, j, activeLevel];
-                if (worldObject is null) continue;
-                Gizmos.color = GetColorFromID(worldObject.RoomId);
-                Gizmos.DrawCube(new Vector3(i, activeLevel, j), Vector3.one);
-            }
-        }
-        int edgesWidth = unitWidth + 1;
-        int edgesHeight = (unitHeight * 2) + 1;
-        for (int i = 0; i < edgesWidth; i++) {
-            for (int j = 0; j < edgesHeight; j++) {
-                WorldEdgeObject worldObject = WorldEdgesMap[i, j, activeLevel];
-                if (worldObject is null) continue;
-                Gizmos.color = Color.black;
-                Gizmos.DrawSphere(GetEdgePosition(i, j), 1f);
-            }
-        }
-    }
+    // private void OnDrawGizmos() {
+    //     if (!hasInitialized) return;
+    //     for (int i = 0; i < unitWidth; i++) {
+    //         for (int j = 0; j < unitHeight; j++) {
+    //             WorldObject worldObject = WorldMap[i, j, activeLevel];
+    //             if (worldObject is null) continue;
+    //             Gizmos.color = GetColorFromID(worldObject.RoomId);
+    //             Gizmos.DrawCube(new Vector3(i, activeLevel, j), Vector3.one);
+    //         }
+    //     }
+    //     int edgesWidth = unitWidth + 1;
+    //     int edgesHeight = (unitHeight * 2) + 1;
+    //     for (int i = 0; i < edgesWidth; i++) {
+    //         for (int j = 0; j < edgesHeight; j++) {
+    //             WorldEdgeObject worldObject = WorldEdgesMap[i, j, activeLevel];
+    //             if (worldObject is null) continue;
+    //             Gizmos.color = Color.black;
+    //             Gizmos.DrawSphere(GetEdgePosition(i, j), 1f);
+    //         }
+    //     }
+    // }
 
     private Vector3 GetEdgePosition(int x, int y) {
         return new Vector3(
