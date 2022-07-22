@@ -35,6 +35,7 @@ public class GameController : MonoBehaviour
     }
 
     private MapController _map;
+    private WeaponFactory _weaponFactory;
 
     private void Awake() {
         UnitDamage.OnUnitDied += UnitDied;
@@ -99,6 +100,7 @@ public class GameController : MonoBehaviour
     {
         _map = GetComponent<MapController>();
         _map.SetupMap();
+        _weaponFactory = GetComponent<WeaponFactory>();
         int midWidth = _map.unitWidth / 2;
         Team1 = new List<GameObject>();
         Team2 = new List<GameObject>();
@@ -139,6 +141,7 @@ public class GameController : MonoBehaviour
     {
         GameObject unit = Instantiate((isTeam2 ? _unit2Prefab : _unit1Prefab), new Vector3(x, .8f, y), (isTeam2 ? Quaternion.Euler(0, 180, 0) : Quaternion.identity));
         unit.GetComponent<Unit>().Team = isTeam2 ? Team.Team2 : Team.Team1;
+        _weaponFactory.GiveSniper(unit);
         WorldObject unitObject = new WorldObject(unit, WorldObjectType.Unit, 0);
         _map.PlaceObject(x, y, unitObject);
         if (isTeam2) {

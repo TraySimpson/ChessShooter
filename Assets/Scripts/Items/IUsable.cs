@@ -1,6 +1,11 @@
 public interface IUsable {
-    public void Equip();
-    public void Unequip();
-    public void Use();
+    public UsableType GetUsableType();
+    public UsableSO GetStatSO();
     public bool IsActive();
+}
+
+public enum UsableType {
+    Weapon,
+    Throwable,
+    Deployable
 }
