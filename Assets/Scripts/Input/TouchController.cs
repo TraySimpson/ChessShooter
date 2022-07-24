@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 
 [RequireComponent(typeof(MapController))]
 [RequireComponent(typeof(GameController))]
-[RequireComponent(typeof(WeaponController))]
+[RequireComponent(typeof(ItemController))]
 [RequireComponent(typeof(MovePath))]
 public class TouchController : MonoBehaviour
 {
@@ -13,7 +13,7 @@ public class TouchController : MonoBehaviour
     private CameraController _cameraController;
     private MapController _map;
     private GameController _gameController;
-    private WeaponController _weaponController;
+    private ItemController _itemController;
 
     // Pan
     [SerializeField] private Vector3? touchStart;
@@ -37,7 +37,7 @@ public class TouchController : MonoBehaviour
     void Start() {
         _map = GetComponent<MapController>();
         _gameController = GetComponent<GameController>();
-        _weaponController = GetComponent<WeaponController>();
+        _itemController = GetComponent<ItemController>();
         _movePath = GetComponent<MovePath>();
         _camera = Camera.main;
         _cameraController = _camera.GetComponent<CameraController>();
@@ -62,7 +62,7 @@ public class TouchController : MonoBehaviour
 
         switch (touch.phase) {
             case TouchPhase.Began:
-                OnTouchBegin(touchPosition.Value);
+                OnTouchBegin(touchPosition.Value, touch.position);
                 break;
             case TouchPhase.Moved:
                 OnTouchUpdate(touchPosition.Value);
@@ -75,16 +75,33 @@ public class TouchController : MonoBehaviour
         }
     }
 
-    private void OnTouchBegin(Vector3 touchPosition) {
+    private void OnTouchBegin(Vector3 touchPosition, Vector3 rawTouchPosition) {
         Vector2Int coordinates = touchPosition.Get2DCoords();
         WorldObject worldObject = _map.GetObjectAtCoords(coordinates);
         if (!(worldObject is null) && worldObject.Type == WorldObjectType.Unit)
             currentSelectedUnit = worldObject.GameObject;
-        if (!(selectedUnit is null) && EventSystem.current.IsPointerOverGameObject(_fingerId)) {
+        if (!(selectedUnit is null) && HitRotationHandle(rawTouchPosition)) {
             hitRotationHandle = true;
             startRotation = selectedUnit.transform.rotation;
         }
         touchStart = touchPosition;
+    }
+
+    private bool HitRotationHandle(Vector3 touchPosition) {
+        List<RaycastResult> results = new List<RaycastResult>();
+        PointerEventData pointerData = new PointerEventData(EventSystem.current)
+        {
+            pointerId = _fingerId,
+        };
+        pointerData.position = touchPosition;
+        EventSystem.current.RaycastAll(pointerData, results);
+        bool hitHandle = false;
+        foreach (var result in results)
+        {
+            if (result.gameObject.name == "RotationHandle")
+                hitHandle = true;
+        }
+        return hitHandle;
     }
 
     private void OnTouchUpdate(Vector3 touchPosition) {
@@ -117,12 +134,25 @@ public class TouchController : MonoBehaviour
             if (selectedUnit is null) {
                 SelectUnit(currentSelectedUnit);
             } else {
-                _weaponController.FireAtTarget(selectedUnit, worldObject.GameObject);
+                // _weaponController.FireAtTarget(selectedUnit, worldObject.GameObject);
                 _gameController.CurrentActionPoints--;
             }
         }
         MoveFromPath();
         CleanupTouchVars();
+    }
+
+    public void UseActiveGadget() {
+        if (selectedUnit is null) {
+            print ("No unit selected");
+            return;
+        }
+        Unit unit = selectedUnit.GetComponent<Unit>();
+        if (unit.ActiveItem is null) {
+            print("No item selected");
+            return;
+        }
+        _itemController.UseItem(selectedUnit, unit.ActiveItem);
     }
 
     private bool TouchedSingleUnit(WorldObject worldObject) {
