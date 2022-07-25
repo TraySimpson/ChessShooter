@@ -1,15 +1,32 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class ItemController : MonoBehaviour
 {
+    #region Events
+    public static event Action<Unit> OnActiveItemSwitched = delegate { };
+    #endregion
+
+    [SerializeField] private TouchController _touchController;
+
     [SerializeField] private float MaxDistance = 40f;
     // public void FireAtTarget(GameObject shooter, GameObject target) {
     //     IDamagable targetHealth = target.GetComponent<IDamagable>();
     //     if (!(targetHealth is null))
     //         targetHealth.TakeDamage(100);
     // }
+
+    private void Start() {
+        _touchController = GetComponent<TouchController>();
+    }
+
+    public void EquipItem(int buttonIndex) {
+        Unit unit = _touchController.SelectedUnit.GetComponent<Unit>();
+        unit.ActiveItem()?.SetActive(false);
+        unit.Items.ToArray()[buttonIndex-1].SetActive(true);
+        OnActiveItemSwitched?.Invoke(unit);
+    }
 
     public void UseItem(GameObject user, IUsable item) {
         switch (item.GetUsableType())

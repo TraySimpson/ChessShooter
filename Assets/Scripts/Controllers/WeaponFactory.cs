@@ -19,6 +19,7 @@ public class WeaponFactory : MonoBehaviour
         Weapon sniperData = weapon.GetComponent<Weapon>();
         weapon.transform.parent = unit.transform;
         Unit unitData = unit.GetComponent<Unit>();
+        sniperData.SetActive(unitData.Items.Count == 0);
         unitData.Items.Add(sniperData);
     }
 }

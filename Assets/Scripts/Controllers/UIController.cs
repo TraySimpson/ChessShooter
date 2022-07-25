@@ -8,15 +8,20 @@ public class UIController : MonoBehaviour
 {
     [SerializeField] private TMP_Text teamTurnText;
     [SerializeField] private Canvas gadgetWheel;
+    [SerializeField] private Color activeItemColor;
+    [SerializeField] private Color inactiveItemColor;
+
 
     private void Awake() {
         GameController.OnTurnChanged += ChangeTurn;
         TouchController.OnUnitSelected += SelectUnit;
+        ItemController.OnActiveItemSwitched += UpdateGadgetWheel;
     }
 
     private void OnDestroy() {
         GameController.OnTurnChanged -= ChangeTurn;
         TouchController.OnUnitSelected -= SelectUnit;
+        ItemController.OnActiveItemSwitched -= UpdateGadgetWheel;
     }
 
     private void Start() {
@@ -47,12 +52,19 @@ public class UIController : MonoBehaviour
             gadgetBorderUI.gameObject.SetActive(true);
             Transform gadgetIconUI = gadgetBorderUI.Find("HexMask").Find("BG").Find("Gadget");
             gadgetIconUI.gameObject.GetComponent<Image>().sprite = gadgetSO.Icon;
+            SetItemUIStatus(item.IsActive(), gadgetBorderUI.gameObject, gadgetBorderUI.Find("HexMask").gameObject);
             i++;
         }
         while (i < 4) {
             gadgetWheel.transform.Find($"HexBorder {i}").gameObject.SetActive(false);
             i++;
         }
+    }
+
+    private void SetItemUIStatus(bool isActive, GameObject hexBorder, GameObject hexMask) {
+        hexBorder.GetComponent<Image>().color = isActive ? activeItemColor : inactiveItemColor;
+        hexBorder.GetComponent<RectTransform>().sizeDelta = isActive ? new Vector2(150, 150) : new Vector2(144, 144);
+        hexMask.GetComponent<RectTransform>().sizeDelta = isActive ? new Vector2(128, 128) : new Vector2(128, 144);
     }
 
 }

@@ -35,7 +35,7 @@ public class TouchController : MonoBehaviour
 
     // Unit Control
     private MovePath _movePath;
-    private GameObject selectedUnit;
+    public GameObject SelectedUnit { get; set;}
     private GameObject currentSelectedUnit;
     private int groundMask;
     private int uiMask;
@@ -86,9 +86,9 @@ public class TouchController : MonoBehaviour
         WorldObject worldObject = _map.GetObjectAtCoords(coordinates);
         if (!(worldObject is null) && worldObject.Type == WorldObjectType.Unit)
             currentSelectedUnit = worldObject.GameObject;
-        if (!(selectedUnit is null) && HitRotationHandle(rawTouchPosition)) {
+        if (!(SelectedUnit is null) && HitRotationHandle(rawTouchPosition)) {
             hitRotationHandle = true;
-            startRotation = selectedUnit.transform.rotation;
+            startRotation = SelectedUnit.transform.rotation;
         }
         touchStart = touchPosition;
     }
@@ -117,9 +117,9 @@ public class TouchController : MonoBehaviour
                 _movePath.AddCoords(coordinates, _gameController.CurrentActionPoints);
             }
         } else if (!(touchStart is null)) {
-            if (hitRotationHandle && !(selectedUnit is null)) {
+            if (hitRotationHandle && !(SelectedUnit is null)) {
                 // Rotate
-                selectedUnit.transform.rotation = startRotation * Quaternion.Euler(0, (touchPosition - touchStart.Value).x * rotationSpeed, 0);
+                SelectedUnit.transform.rotation = startRotation * Quaternion.Euler(0, (touchPosition - touchStart.Value).x * rotationSpeed, 0);
             } else {
                 // Pan
                 Vector3 distance = touchStart.Value - touchPosition;
@@ -137,7 +137,7 @@ public class TouchController : MonoBehaviour
         Vector2Int coordinates = touchPosition.Get2DCoords();
         WorldObject worldObject = _map.GetObjectAtCoords(coordinates);
         if (TouchedSingleUnit(worldObject)) {
-            if (selectedUnit is null) {
+            if (SelectedUnit is null) {
                 SelectUnit(currentSelectedUnit);
             } else {
                 // _weaponController.FireAtTarget(selectedUnit, worldObject.GameObject);
@@ -149,16 +149,16 @@ public class TouchController : MonoBehaviour
     }
 
     public void UseActiveGadget() {
-        if (selectedUnit is null) {
+        if (SelectedUnit is null) {
             print ("No unit selected");
             return;
         }
-        Unit unit = selectedUnit.GetComponent<Unit>();
-        if (unit.ActiveItem is null) {
+        Unit unit = SelectedUnit.GetComponent<Unit>();
+        if (unit.ActiveItem() is null) {
             print("No item selected");
             return;
         }
-        _itemController.UseItem(selectedUnit, unit.ActiveItem);
+        _itemController.UseItem(SelectedUnit, unit.ActiveItem());
     }
 
     private bool TouchedSingleUnit(WorldObject worldObject) {
@@ -218,13 +218,13 @@ public class TouchController : MonoBehaviour
     private void SelectUnit(GameObject unit, bool moveCamera=false)
     {
         bool unitIsNull = unit is null;
-        if (unitIsNull && selectedUnit)
-            selectedUnit.GetComponent<Outline>().enabled = false;
-        selectedUnit = unit;
+        if (unitIsNull && SelectedUnit)
+            SelectedUnit.GetComponent<Outline>().enabled = false;
+        SelectedUnit = unit;
         if (!unitIsNull) {
-            selectedUnit.GetComponent<Outline>().enabled = true;
+            SelectedUnit.GetComponent<Outline>().enabled = true;
             if (moveCamera)
-                _cameraController.MoveToCoords(selectedUnit.transform.position.Get2DCoords());
+                _cameraController.MoveToCoords(SelectedUnit.transform.position.Get2DCoords());
         }
         OnUnitSelected?.Invoke(unit);
     }

@@ -4,10 +4,16 @@ using UnityEngine;
 
 public class Weapon : MonoBehaviour, IUsable
 {
-    public bool _isActive {get; set;}
+    private bool _active;
+
     public WeaponSO WeaponStats;
 
     public UsableType GetUsableType() => UsableType.Weapon;
     public UsableSO GetStatSO() => WeaponStats;
-    public bool IsActive() => _isActive;
+    public bool IsActive() => _active;
+    public void SetActive(bool active) {
+        _active = active;
+        gameObject.SetActive(active);
+    }
+
 }
