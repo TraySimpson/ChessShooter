@@ -130,7 +130,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64d84ccb658879046b7e5dcd0a866d6c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  viewDistance: 10
+  viewDistance: 30
   viewDegrees: 60
   degreeResolution: 2
   points: []

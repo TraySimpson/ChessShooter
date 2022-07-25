@@ -14,6 +14,7 @@ public class Weapon : MonoBehaviour, IUsable
     public void SetActive(bool active) {
         _active = active;
         gameObject.SetActive(active);
+        gameObject.transform.Find("LOS").gameObject.SetActive(active);
     }
-
+    public GameObject GetGameObject() => gameObject;
 }
