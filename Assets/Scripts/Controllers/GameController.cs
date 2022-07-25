@@ -142,6 +142,7 @@ public class GameController : MonoBehaviour
         GameObject unit = Instantiate((isTeam2 ? _unit2Prefab : _unit1Prefab), new Vector3(x, .8f, y), (isTeam2 ? Quaternion.Euler(0, 180, 0) : Quaternion.identity));
         unit.GetComponent<Unit>().Team = isTeam2 ? Team.Team2 : Team.Team1;
         _weaponFactory.GiveSniper(unit);
+        _weaponFactory.GivePistol(unit);
         WorldObject unitObject = new WorldObject(unit, WorldObjectType.Unit, 0);
         _map.PlaceObject(x, y, unitObject);
         if (isTeam2) {

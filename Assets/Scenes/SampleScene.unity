@@ -865,7 +865,7 @@ GameObject:
   - component: {fileID: 386123683}
   - component: {fileID: 386123682}
   m_Layer: 5
-  m_Name: HexBorder TopCenter
+  m_Name: HexBorder 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2151,6 +2151,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   teamTurnText: {fileID: 611388155}
+  gadgetWheel: {fileID: 502715889}
 --- !u!1 &1038156662
 GameObject:
   m_ObjectHideFlags: 0
@@ -2370,6 +2371,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _sniperPrefab: {fileID: 7757164741667948592, guid: 8e7fa28eed7d1214791768c5b06350b6, type: 3}
+  _pistolPrefab: {fileID: 1929572007469709367, guid: e2117d811b0cf44449c7e043b4759e03, type: 3}
 --- !u!114 &1080847026
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3425,7 +3427,7 @@ GameObject:
   - component: {fileID: 1468486328}
   - component: {fileID: 1468486327}
   m_Layer: 5
-  m_Name: HexBorder TopLeft
+  m_Name: HexBorder 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4412,7 +4414,7 @@ GameObject:
   - component: {fileID: 2101434428}
   - component: {fileID: 2101434427}
   m_Layer: 5
-  m_Name: HexBorder TopRight
+  m_Name: HexBorder 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

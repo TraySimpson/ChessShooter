@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,6 +10,11 @@ using UnityEngine.EventSystems;
 [RequireComponent(typeof(MovePath))]
 public class TouchController : MonoBehaviour
 {
+
+    #region Events
+    public static event Action<GameObject> OnUnitSelected = delegate { };
+    #endregion
+
     [SerializeField] private Camera _camera;
     private CameraController _cameraController;
     private MapController _map;
@@ -209,7 +215,7 @@ public class TouchController : MonoBehaviour
         return null;
     }
 
-    private void SelectUnit(GameObject unit)
+    private void SelectUnit(GameObject unit, bool moveCamera=false)
     {
         bool unitIsNull = unit is null;
         if (unitIsNull && selectedUnit)
@@ -217,7 +223,9 @@ public class TouchController : MonoBehaviour
         selectedUnit = unit;
         if (!unitIsNull) {
             selectedUnit.GetComponent<Outline>().enabled = true;
-            // _cameraController.MoveToCoords(selectedUnit.transform.position.Get2DCoords());
+            if (moveCamera)
+                _cameraController.MoveToCoords(selectedUnit.transform.position.Get2DCoords());
         }
+        OnUnitSelected?.Invoke(unit);
     }
 }
