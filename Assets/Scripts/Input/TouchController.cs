@@ -148,19 +148,6 @@ public class TouchController : MonoBehaviour
         CleanupTouchVars();
     }
 
-    public void UseActiveGadget() {
-        if (SelectedUnit is null) {
-            print ("No unit selected");
-            return;
-        }
-        Unit unit = SelectedUnit.GetComponent<Unit>();
-        if (unit.ActiveItem() is null) {
-            print("No item selected");
-            return;
-        }
-        _itemController.UseItem(SelectedUnit, unit.ActiveItem());
-    }
-
     private bool TouchedSingleUnit(WorldObject worldObject) {
         return !(worldObject is null) && !(currentSelectedUnit is null) && GameObject.ReferenceEquals(worldObject.GameObject, currentSelectedUnit);
     }

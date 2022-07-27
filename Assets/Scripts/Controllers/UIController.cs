@@ -39,8 +39,13 @@ public class UIController : MonoBehaviour
 
     public void SelectUnit(GameObject unit) {
         // TODO Setup unit UI and update here
-
+        ToggleUseButton(!(unit is null));
         UpdateGadgetWheel(unit.GetComponent<Unit>());
+    }
+
+    private void ToggleUseButton(bool isActive) {
+        Transform useButtonUI = gadgetWheel.transform.Find($"FireButton");
+        useButtonUI.gameObject.SetActive(isActive);
     }
 
     private void UpdateGadgetWheel(Unit unit) {

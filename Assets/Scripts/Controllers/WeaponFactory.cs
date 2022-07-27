@@ -5,9 +5,14 @@ public class WeaponFactory : MonoBehaviour
 {
     [SerializeField] private GameObject _sniperPrefab;
     [SerializeField] private GameObject _pistolPrefab;
+    [SerializeField] private GameObject _arPrefab;
 
     public void GiveSniper(GameObject unit) {
         GiveWeapon(unit, _sniperPrefab);
+    }
+
+    public void GiveAR(GameObject unit) {
+        GiveWeapon(unit, _arPrefab);
     }
 
     public void GivePistol(GameObject unit) {

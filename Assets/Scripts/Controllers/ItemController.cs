@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class ItemController : MonoBehaviour
@@ -28,11 +28,17 @@ public class ItemController : MonoBehaviour
         OnActiveItemSwitched?.Invoke(unit);
     }
 
-    public void UseItem(GameObject user, IUsable item) {
+    public void UseItem() {
+        print("Using item");
+        IUsable item = _touchController.SelectedUnit.GetComponent<Unit>().ActiveItem();
+        UseItemSpecific(_touchController.SelectedUnit, item);
+    }
+
+    public void UseItemSpecific(GameObject user, IUsable item) {
         switch (item.GetUsableType())
         {
             case UsableType.Weapon:
-                FireWeapon(user, item);
+                FireWeapon(user, (Weapon)item);
                 break;
             case UsableType.Throwable:
                 break;
@@ -43,20 +49,38 @@ public class ItemController : MonoBehaviour
         }
     }
 
-    private void FireWeapon(GameObject user, IUsable item) {
+    private void FireWeapon(GameObject user, Weapon item) {
         WeaponSO stats = (WeaponSO)item.GetStatSO();
         if (stats.SpreadDegrees == 0) {
-            RaycastHit[] hits = GetHits(user.transform);
+            RaycastHit[] hits = item.GetLOSHits();
+            int penetrationReduction = 0;
+            print("Hits: " + hits.Length);
+            foreach (RaycastHit hit in hits)
+            {
+                // Hit doesn't exist anymore
+                if (hit.transform is null) continue;
+                IDamagable damageHit = hit.transform.gameObject.GetComponent<IDamagable>();
+                int damage = GetDamageAtRange(stats, hit.distance, penetrationReduction);
+                if (damage < 1) break;
+                damageHit.TakeDamage(damage);
+                penetrationReduction += damageHit.GetResistance();
+            }
         }
         else {
             //TODO Shotgun projectiles
         }
+        item.UpdateLOS();
     }
 
-    private RaycastHit[] GetHits(Transform startTransform) {
-        Vector3 direction = startTransform.TransformDirection(Vector3.forward);
-        RaycastHit[] hits = new RaycastHit[5];
-        Physics.RaycastNonAlloc(startTransform.position, direction, hits, MaxDistance);
-        return hits;
+    private int GetDamageAtRange(WeaponSO stats, float distance, int penetrationReduction) {
+        int dropOffRange = stats.FalloffEnd - stats.FalloffStart;
+        float dropOffFactor = Mathf.Abs(distance - stats.FalloffStart) / dropOffRange;
+        float damage = Mathf.Lerp(
+            stats.MaxDamage, 
+            stats.MinDamage,
+            dropOffFactor);
+        int penetration = stats.Penetration - penetrationReduction;
+        if (penetration < 1) return 0;
+        return Mathf.RoundToInt(damage * (penetration/stats.Penetration));
     }
 }

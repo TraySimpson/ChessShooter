@@ -15,6 +15,7 @@ public class UnitDamage : MonoBehaviour, IDamagable
 
     public void TakeDamage(int damage) {
         currentHealth -= damage;
+        print("Unit took " + damage + " points of damage");
         if (currentHealth <= 0)
             Die();
     }
@@ -24,4 +25,7 @@ public class UnitDamage : MonoBehaviour, IDamagable
         Destroy(gameObject);
         Debug.Log("Unit died");
     }
+
+    public int GetHealth() => currentHealth;
+    public int GetResistance() => totalHealth;
 }

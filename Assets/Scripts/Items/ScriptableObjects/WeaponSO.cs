@@ -8,6 +8,7 @@ public class WeaponSO : UsableSO
 
     public byte FalloffStart;
     public byte FalloffEnd;
+    public byte MaxDistance;
 
     public short SpreadDegrees;
     public short Penetration;

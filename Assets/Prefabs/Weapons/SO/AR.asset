@@ -10,18 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d8a26e4da989cd647a0eb49b4f2e79f6, type: 3}
-  m_Name: Pistol
+  m_Name: AR
   m_EditorClassIdentifier: 
-  Name: Pistol
-  Icon: {fileID: 21300000, guid: 6ac6fe0da4d106b44b92c7e92868bbbb, type: 3}
-  MaxDamage: 24
-  MinDamage: 12
-  FalloffStart: 4
-  FalloffEnd: 10
-  MaxDistance: 15
+  Name: AR
+  Icon: {fileID: 21300000, guid: 11a7d43e1ca5d1d4591cd9a4550276a0, type: 3}
+  MaxDamage: 60
+  MinDamage: 35
+  FalloffStart: 6
+  FalloffEnd: 20
+  MaxDistance: 25
   SpreadDegrees: 0
-  Penetration: 10
-  Destruction: 10
-  APCost: 1
-  ShotsPerBurst: 1
-  SoundRadiusTenths: 20
+  Penetration: 60
+  Destruction: 40
+  APCost: 3
+  ShotsPerBurst: 3
+  SoundRadiusTenths: 30

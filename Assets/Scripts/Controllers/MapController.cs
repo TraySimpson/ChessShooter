@@ -17,7 +17,7 @@ public class MapController : MonoBehaviour
     public int unitHeight => _unitHeight;
 
     private GridRectangle bounds;
-    private bool hasInitialized = false;
+    // private bool hasInitialized = false;
 
     private void Awake() {
         UnitDamage.OnUnitDied += RemoveObject;
@@ -31,7 +31,7 @@ public class MapController : MonoBehaviour
     {
         ScalePlane();
         SetupGrids();
-        hasInitialized = true;
+        // hasInitialized = true;
     }
 
     public void RemoveObject(GameObject removeObject) {

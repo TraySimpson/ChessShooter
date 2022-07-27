@@ -18,6 +18,7 @@ MonoBehaviour:
   MinDamage: 80
   FalloffStart: 8
   FalloffEnd: 20
+  MaxDistance: 40
   SpreadDegrees: 0
   Penetration: 200
   Destruction: 50
