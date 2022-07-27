@@ -8,9 +8,6 @@ public class UIController : MonoBehaviour
 {
     [SerializeField] private TMP_Text teamTurnText;
     [SerializeField] private Canvas gadgetWheel;
-    [SerializeField] private Color activeItemColor;
-    [SerializeField] private Color inactiveItemColor;
-
 
     private void Awake() {
         GameController.OnTurnChanged += ChangeTurn;
@@ -67,9 +64,12 @@ public class UIController : MonoBehaviour
     }
 
     private void SetItemUIStatus(bool isActive, GameObject hexBorder, GameObject hexMask) {
-        hexBorder.GetComponent<Image>().color = isActive ? activeItemColor : inactiveItemColor;
+        hexBorder.GetComponent<Image>().color = isActive ? ColorController.Instance.ActiveGadgetColor : ColorController.Instance.InactiveGadgetColor;
         hexBorder.GetComponent<RectTransform>().sizeDelta = isActive ? new Vector2(150, 150) : new Vector2(144, 144);
         hexMask.GetComponent<RectTransform>().sizeDelta = isActive ? new Vector2(128, 128) : new Vector2(128, 144);
     }
 
+    public void OnUnitIconPressed(int index) {
+
+    }
 }

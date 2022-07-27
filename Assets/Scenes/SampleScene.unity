@@ -2161,6 +2161,7 @@ GameObject:
   - component: {fileID: 991421723}
   - component: {fileID: 991421722}
   - component: {fileID: 991421726}
+  - component: {fileID: 991421727}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -2266,8 +2267,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   teamTurnText: {fileID: 611388155}
   gadgetWheel: {fileID: 502715889}
-  activeItemColor: {r: 1, g: 0.9452549, b: 0.16509432, a: 1}
-  inactiveItemColor: {r: 0.14901961, g: 0.74509805, b: 0.8509804, a: 1}
+--- !u!114 &991421727
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 991421721}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa265dec6aa48e74bae7bcf02e79c4d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1038156662
 GameObject:
   m_ObjectHideFlags: 0
