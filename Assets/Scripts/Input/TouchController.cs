@@ -19,7 +19,6 @@ public class TouchController : MonoBehaviour
     private CameraController _cameraController;
     private MapController _map;
     private GameController _gameController;
-    private ItemController _itemController;
 
     // Pan
     [SerializeField] private Vector3? touchStart;
@@ -43,7 +42,6 @@ public class TouchController : MonoBehaviour
     void Start() {
         _map = GetComponent<MapController>();
         _gameController = GetComponent<GameController>();
-        _itemController = GetComponent<ItemController>();
         _movePath = GetComponent<MovePath>();
         _camera = Camera.main;
         _cameraController = _camera.GetComponent<CameraController>();
@@ -213,6 +211,8 @@ public class TouchController : MonoBehaviour
             if (moveCamera)
                 _cameraController.MoveToCoords(SelectedUnit.transform.position.Get2DCoords());
         }
+        if (unit is null)
+            print("Deselecting unit");
         OnUnitSelected?.Invoke(unit);
     }
 }

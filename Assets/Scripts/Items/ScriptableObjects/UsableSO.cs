@@ -4,4 +4,5 @@ using UnityEngine;
 public class UsableSO : ScriptableObject {
     public string Name;
     public Sprite Icon;
+    public byte APCost;
 }

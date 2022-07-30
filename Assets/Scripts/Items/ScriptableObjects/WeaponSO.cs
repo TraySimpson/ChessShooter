@@ -13,7 +13,6 @@ public class WeaponSO : UsableSO
     public short SpreadDegrees;
     public short Penetration;
     public short Destruction;
-    public byte APCost;
     public byte ShotsPerBurst;
     public byte SoundRadiusTenths;
 }

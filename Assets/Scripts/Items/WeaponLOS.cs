@@ -9,18 +9,50 @@ public class WeaponLOS : MonoBehaviour
     private RaycastHit[] hits;
     private IComparer<RaycastHit> _raycastComparer;
     [SerializeField] private int distancePastFalloff = 2;
+    
+    private int? _unitInstanceId;
+    private bool _isActive;
 
-    void Start()
-    {
+    #region Event listener
+    private void Awake() {
+        TouchController.OnUnitSelected += ToggleFromUnitSelected;
+        ItemController.OnActiveItemSwitched += ToggleFromUnitSelected;
         _raycastComparer = new RaycastHitComparer();
         weaponStats = (WeaponSO)transform.parent.GetComponent<Weapon>().GetStatSO();
         lineRenderer = GetComponent<LineRenderer>();
+        ToggleVisibility(false);
+    }
+
+    private void OnDisable() {
+        TouchController.OnUnitSelected -= ToggleFromUnitSelected;
+        ItemController.OnActiveItemSwitched -= ToggleFromUnitSelected;
+    }
+    #endregion
+
+    public void ToggleFromUnitSelected(Unit unit) {
+        ToggleFromUnitSelected(unit.ActiveItem().GetGameObject());
+    }
+
+    public void ToggleFromUnitSelected(GameObject unit) {
+        if (_unitInstanceId is null)
+            _unitInstanceId = transform.parent.parent.gameObject.GetInstanceID();
+        print("Comparing weapon LOS ");
+        ToggleVisibility(!(unit is null) && _unitInstanceId == unit.GetInstanceID());
+    }
+
+    private void ToggleVisibility(bool isActive) {
+        _isActive = isActive;
+        lineRenderer.enabled = isActive;
+    }
+
+    void Start()
+    {
         SetLineLength();
     }
 
     void Update()
     {
-        if (transform.parent.transform.hasChanged)
+        if (transform.parent.transform.hasChanged && _isActive)
         {
             UpdateLineRenderer();
             transform.parent.transform.hasChanged = false;

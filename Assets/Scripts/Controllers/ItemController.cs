@@ -28,6 +28,23 @@ public class ItemController : MonoBehaviour
         OnActiveItemSwitched?.Invoke(unit);
     }
 
+    // If active item is higher than available AP, switch items
+    public void ValidateActiveWeapon(GameObject user) {
+        Unit unit = user.GetComponent<Unit>();
+        // Active weapon is within AP budget
+        if (unit.ActiveItem().GetStatSO().APCost <= GameController.Instance.CurrentActionPoints)
+            return;
+        int i = 1;
+        foreach (IUsable item in unit.Items)
+        {
+            if (item.GetStatSO().APCost <= GameController.Instance.CurrentActionPoints) {
+                EquipItem(i);
+                break;
+            }
+            i++;
+        }
+    }
+
     public void UseItem() {
         print("Using item");
         IUsable item = _touchController.SelectedUnit.GetComponent<Unit>().ActiveItem();
@@ -35,10 +52,15 @@ public class ItemController : MonoBehaviour
     }
 
     public void UseItemSpecific(GameObject user, IUsable item) {
+        UsableSO stats = item.GetStatSO();
+        if (GameController.Instance.CurrentActionPoints < stats.APCost) {
+            throw new System.Exception("AP Cost is above current AP points");
+        }
+        GameController.Instance.CurrentActionPoints -= stats.APCost;
         switch (item.GetUsableType())
         {
             case UsableType.Weapon:
-                FireWeapon(user, (Weapon)item);
+                FireWeapon(user, (Weapon)item, (WeaponSO)stats);
                 break;
             case UsableType.Throwable:
                 break;
@@ -47,10 +69,10 @@ public class ItemController : MonoBehaviour
             default:
                 throw new System.Exception("Item type not recognized");
         }
+        ValidateActiveWeapon(user);
     }
 
-    private void FireWeapon(GameObject user, Weapon item) {
-        WeaponSO stats = (WeaponSO)item.GetStatSO();
+    private void FireWeapon(GameObject user, Weapon item, WeaponSO stats) {
         if (stats.SpreadDegrees == 0) {
             RaycastHit[] hits = item.GetLOSHits();
             int penetrationReduction = 0;

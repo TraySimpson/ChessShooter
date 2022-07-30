@@ -7,9 +7,11 @@ using UnityEngine;
 [RequireComponent(typeof(MapController))]
 public class GameController : MonoBehaviour
 {
+    public static GameController Instance { get; private set; }
 
     #region Events
     public static event Action<GameState, Vector2Int> OnTurnChanged = delegate { };
+    public static event Action<int> OnActionPointsChanged = delegate { };
     public static event Action<GameState> OnGameEnded = delegate { };
     #endregion
 
@@ -29,8 +31,11 @@ public class GameController : MonoBehaviour
         get => _currentActionPoints;
         set {
             _currentActionPoints = value;
-            if (_currentActionPoints < 1)
+            if (_currentActionPoints < 1) {
                 EndTurn();
+            } else {
+                OnActionPointsChanged?.Invoke(value);
+            }
         }
     }
 
@@ -38,6 +43,12 @@ public class GameController : MonoBehaviour
     private WeaponFactory _weaponFactory;
 
     private void Awake() {
+        if (Instance != null && Instance != this) {
+            Destroy(this);
+        } else {
+            Instance = this;
+        }
+
         UnitDamage.OnUnitDied += UnitDied;
     }
 
